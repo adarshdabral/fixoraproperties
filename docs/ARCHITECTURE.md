@@ -52,8 +52,9 @@ Route → validate(zodSchema) → requireAuth() → requirePermission()/requireO
 | RBAC middleware (`requireAuth`, `requireRole`, `requirePermission`, `requireOwnership`) | ✅ done |
 | Audit logging infrastructure | ✅ done (auth events wired; more actions wired as those modules land) |
 | Property CRUD + moderation + search | ✅ done (backend) |
-| Shortlists / inquiries | 🚧 planned |
-| Leads / broker assignment / negotiations / transactions / commissions | 🚧 planned |
+| Shortlists / inquiries | ✅ done (backend) |
+| Leads / broker assignment | ✅ done (backend) |
+| Negotiations / transactions / commissions | 🚧 planned |
 | AI assistant | 🚧 planned (Phase 3 per client roadmap) |
 | WhatsApp handoff | 🚧 planned (Phase 2 per client roadmap) |
 | Public website UI | 🚧 planned |

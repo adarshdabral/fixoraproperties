@@ -86,15 +86,54 @@ moderation queue → approve → appears in public search; Seller B editing
 Seller A's property → `403`; unpublished properties absent from
 `/properties` search results.
 
+### `POST /shortlists/:propertyId` / `DELETE /shortlists/:propertyId` (role: BUYER)
+Add/remove a published property. Duplicate adds are rejected with `409`
+(unique compound index on `(buyerId, propertyId)`).
+
+### `GET /shortlists` (role: BUYER)
+The caller's shortlisted properties, `PublicPropertyDTO[]`.
+
+### `POST /inquiries` (role: BUYER)
+Body: `{ propertyId, message }`. This is the controlled-communication entry
+point: it creates a `Lead` (which resolves broker assignment via
+`assignBroker()`), then an `Inquiry` referencing it. Response message is
+literally "Your enquiry has been received by Fixora" — never a seller
+contact detail. 404s if the property isn't published.
+
+### `GET /inquiries/mine` / `GET /inquiries/mine/:id` (role: BUYER)
+Own inquiries only — ownership checked against `req.user.id`, not a
+client-supplied id.
+
+### `GET /inquiries/assigned` (role: BROKER)
+Inquiries whose linked lead is assigned to the caller.
+
+### `GET /inquiries` (permission: `INQUIRIES_VIEW`, role: ADMIN/SUPER_ADMIN)
+All inquiries.
+
+### `GET /leads/mine` (role: BROKER)
+Leads assigned to the caller. A broker requesting another broker's lead by
+id elsewhere (`getOwnedLead`) gets `403`, not the lead.
+
+### `GET /leads?status=&assignedTo=` (permission: `LEADS_VIEW` + role ADMIN/SUPER_ADMIN)
+All leads — deliberately gated to staff even though `BROKER` also holds
+`LEADS_VIEW` in the permission map (that permission covers a broker's own
+`/leads/mine`, not the cross-broker list).
+
+### `PATCH /leads/:id/status` / `POST /leads/:id/notes` (permission: `LEADS_EDIT`)
+Owning broker or staff.
+
+### `PATCH /leads/:id/assign` (permission: `LEADS_ASSIGN` — ADMIN/SUPER_ADMIN)
+Manual override of `LeadAssignmentService`'s automatic assignment; records
+a `LEAD_REASSIGNED` audit entry with the previous and new broker.
+
+**Verified via smoke test (2026-09-12):** buyer enquiry → lead auto-created
+→ assigned to the (only) active broker → visible in that broker's
+`/leads/mine` and `/inquiries/assigned` — with no seller contact field
+anywhere in any response along the way.
+
 ## Planned (mounted in `src/routes/index.ts` as each module lands)
 
 ```
-/search           (currently folded into GET /properties — split out if a
-                   dedicated search service/index, e.g. Atlas Search, is
-                   introduced later per docs/ARCHITECTURE.md)
-/shortlists       Add/remove/list — buyer-only, duplicate-prevented
-/inquiries        Buyer creates, broker/admin manage; never exposes seller contact
-/leads            Broker pipeline, admin assignment/reassignment
 /negotiations     Broker-managed, tied to a lead
 /transactions     Broker/admin-managed, drives commission calculation
 /commissions      Admin-managed ledger
