@@ -57,8 +57,17 @@ Route → validate(zodSchema) → requireAuth() → requirePermission()/requireO
 | Negotiations / transactions / commissions | 🚧 planned |
 | AI assistant | 🚧 planned (Phase 3 per client roadmap) |
 | WhatsApp handoff | 🚧 planned (Phase 2 per client roadmap) |
-| Public website UI | 🚧 planned |
-| Buyer/Seller/Broker/Admin dashboards | 🚧 planned |
+| Public website UI (home, properties list/detail, about, contact, sell) | ✅ done |
+| Auth UI (register with mandatory role select, login, forgot/reset password) | ✅ done |
+| Buyer dashboard (overview, shortlist, enquiries) | ✅ done, minimal |
+| Seller dashboard (property list, create-listing form, submit for review) | ✅ done, minimal |
+| Broker dashboard (assigned leads, status updates) | ✅ done, minimal |
+| Admin dashboard (KPIs, user search + role assignment, property moderation) | ✅ done, minimal |
+| SEO (metadata, OpenGraph, JSON-LD, sitemap, robots) | ✅ done for implemented pages |
+
+"Minimal" above means the core loop works end-to-end against the real API
+(no mock data) but hasn't had a full visual-polish pass — see §62-64 of the
+product spec for the bar to raise these to before calling Phase 1 done.
 
 ## Key design decisions
 
@@ -87,6 +96,27 @@ Route → validate(zodSchema) → requireAuth() → requirePermission()/requireO
   fixes and stable, well-documented App Router APIs — the one relevant
   breaking change from 14 is that route/page `params` and `searchParams` are
   now `Promise`s, which all route handlers in this codebase account for.
+
+## Frontend architecture notes
+
+- **Design system**: Tailwind tokens in `tailwind.config.ts` (`ink`/`paper`/`gold`/`sage`/`line`
+  palette), `Fraunces` (display serif) + `Inter` (body) via `next/font/google`. Hand-rolled
+  UI primitives in `components/ui/*` (Button, Input, Select, Dialog, Toast, etc.) built on
+  Radix primitives + `class-variance-authority` — the same pattern shadcn/ui uses, without the
+  CLI, so there's no vendored copy to keep in sync.
+- **API client split**: `lib/api.ts` (client components, `credentials: "include"` so the
+  httpOnly auth cookies travel with the request) vs `lib/api-server.ts` (Server Components,
+  forwards the incoming request's cookies via `next/headers`). Both share parsing/error
+  handling from `lib/api-core.ts`. The frontend never reads or stores a JWT itself.
+- **`services/*.service.ts`** wrap the API client per domain (auth, properties, buyer,
+  broker, admin) so components call a typed function, not a raw path string.
+- **Auth state**: `hooks/use-auth.tsx` is a context provider that calls `GET /auth/me` on
+  mount and exposes `login`/`register`/`logout`. `components/auth/require-role.tsx` gates
+  dashboard routes client-side for UX (avoids flashing a page the user can't use) — this is
+  **not** a security boundary; the API re-checks every request regardless (see SECURITY.md).
+- **Route groups not yet split**: `/dashboard` (buyer), `/seller`, `/broker`, `/admin` each
+  have their own `layout.tsx` wrapping children in `RequireRole`. They currently share the
+  root layout's Navbar/Footer; revisit if dashboards want a fully separate chrome later.
 
 See also: [DATABASE.md](./DATABASE.md), [API.md](./API.md), [AI.md](./AI.md),
 [WHATSAPP.md](./WHATSAPP.md), [SECURITY.md](./SECURITY.md),

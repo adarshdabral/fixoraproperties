@@ -1,17 +1,7 @@
 import type { LeadDocument } from "./lead.model.js";
+import type { LeadDTO } from "@fixora/types";
 
-export interface LeadDTO {
-  id: string;
-  buyerId: string;
-  propertyId: string;
-  assignedTo: string | null;
-  source: string;
-  requirements: Record<string, unknown>;
-  status: string;
-  notes: { text: string; authorId: string; createdAt: string }[];
-  createdAt: string;
-  updatedAt: string;
-}
+export type { LeadDTO };
 
 export function toLeadDTO(lead: LeadDocument): LeadDTO {
   return {

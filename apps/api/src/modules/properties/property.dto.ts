@@ -1,4 +1,7 @@
 import type { PropertyDocument } from "./property.model.js";
+import type { PublicPropertyDTO, SellerPropertyDTO, AdminPropertyDTO, BrokerPropertyDTO } from "@fixora/types";
+
+export type { PublicPropertyDTO, SellerPropertyDTO, AdminPropertyDTO, BrokerPropertyDTO };
 
 /**
  * Property DTOs never include seller contact details (phone/email) —
@@ -8,55 +11,7 @@ import type { PropertyDocument } from "./property.model.js";
  * DTO layers means a future field added to Property can't accidentally
  * leak a seller's phone number through a property response.
  */
-
-interface BaseFields {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  propertyType: string;
-  category: string;
-  listingType: string;
-  location: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    coordinates?: { lat?: number; lng?: number };
-  };
-  price: { amount: number; currency: string; negotiable: boolean };
-  specifications: {
-    bedrooms?: number;
-    bathrooms?: number;
-    area: number;
-    areaUnit: string;
-    parking?: number;
-    floor?: number;
-    totalFloors?: number;
-  };
-  amenities: string[];
-  media: { url: string; type: string; alt: string; order: number }[];
-  constructionStatus: string;
-  possessionStatus: string;
-  featured: boolean;
-  createdAt: string;
-}
-
-/** What a public visitor / buyer sees. Only published listings are ever queried into this shape. */
-export interface PublicPropertyDTO extends BaseFields {}
-
-/** What the owning seller (or an admin/broker acting on their behalf) sees for one of their own listings. */
-export interface SellerPropertyDTO extends BaseFields {
-  sellerId: string;
-  status: string;
-  rejectionReason: string | null;
-  viewCount: number;
-  updatedAt: string;
-}
-
-/** Admin/broker moderation + coordination view — same fields as SellerPropertyDTO today. */
-export type AdminPropertyDTO = SellerPropertyDTO;
-export type BrokerPropertyDTO = SellerPropertyDTO;
+type BaseFields = PublicPropertyDTO;
 
 /** Mongoose infers optional numeric subdocument fields as `T | null | undefined`; normalize null to undefined for the DTO's TS shape. */
 function n<T>(value: T | null | undefined): T | undefined {

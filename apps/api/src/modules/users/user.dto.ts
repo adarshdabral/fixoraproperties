@@ -1,24 +1,13 @@
 import type { UserDocument } from "./user.model.js";
+import type { PublicUserDTO, PrivateUserDTO } from "@fixora/types";
+
+export type { PublicUserDTO, PrivateUserDTO };
 
 /**
  * Public-facing user shape. Never includes email/phone — those are private
  * contact details and must only ever reach the user themself or staff with
  * a legitimate reason (see SECURITY.md: seller contact protection).
  */
-export interface PublicUserDTO {
-  id: string;
-  name: string;
-  role: string;
-}
-
-/** Returned to the user about themself, or to admins/brokers who need contact info. */
-export interface PrivateUserDTO extends PublicUserDTO {
-  email: string;
-  phone: string;
-  isActive: boolean;
-  createdAt: string;
-}
-
 export function toPublicUserDTO(user: UserDocument): PublicUserDTO {
   return {
     id: user.id,
@@ -27,6 +16,7 @@ export function toPublicUserDTO(user: UserDocument): PublicUserDTO {
   };
 }
 
+/** Returned to the user about themself, or to admins/brokers who need contact info. */
 export function toPrivateUserDTO(user: UserDocument): PrivateUserDTO {
   return {
     ...toPublicUserDTO(user),
