@@ -5,6 +5,7 @@ import propertyRoutes from "../modules/properties/property.routes.js";
 import shortlistRoutes from "../modules/shortlists/shortlist.routes.js";
 import inquiryRoutes from "../modules/inquiries/inquiry.routes.js";
 import leadRoutes from "../modules/leads/lead.routes.js";
+import adminRoutes from "../modules/admin/admin.routes.js";
 
 const router = Router();
 
@@ -14,9 +15,10 @@ router.use("/properties", propertyRoutes);
 router.use("/shortlists", shortlistRoutes);
 router.use("/inquiries", inquiryRoutes);
 router.use("/leads", leadRoutes);
+router.use("/admin", adminRoutes);
 
 // Additional module routers (negotiations, transactions, commissions, ai,
-// whatsapp, notifications, analytics, admin, uploads) are mounted here as
-// each module is implemented — see docs/ARCHITECTURE.md for the full API map.
+// whatsapp, notifications, analytics, uploads) are mounted here as each
+// module is implemented — see docs/ARCHITECTURE.md for the full API map.
 
 export default router;
