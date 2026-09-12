@@ -39,11 +39,59 @@ Optional `?role=` filter. Staff directory, not a public user search.
 Body: `{ isActive }`. Activates/deactivates an account; records
 `USER_DEACTIVATED` audit entry.
 
+### `GET /properties` (public, `optionalAuth`)
+Query params validated by `propertySearchSchema`: `q, city, state, category,
+listingType, minPrice, maxPrice, bedrooms, bathrooms, minArea, maxArea,
+constructionStatus, negotiable, featured, page, limit, sort`. Only ever
+queries `status: "published"`. Returns `PaginatedResult<PublicPropertyDTO>`.
+
+### `GET /properties/slug/:slug` (public)
+Single published property by slug, `PublicPropertyDTO`. 404s for any
+non-published status — a pending/rejected/draft property is invisible to
+the public even if you know its slug.
+
+### `POST /properties` (permission: `PROPERTIES_CREATE` — SELLER)
+Creates a `status: "draft"` property owned by `req.user.id` (never a
+client-supplied `sellerId`).
+
+### `GET /properties/mine` (role: SELLER)
+The caller's own properties in every status, `SellerPropertyDTO[]`.
+
+### `POST /properties/:id/submit` (role: SELLER, ownership enforced)
+`draft`/`rejected` → `pending_review`.
+
+### `GET /properties/:id` (auth required)
+Owner, or ADMIN/SUPER_ADMIN/BROKER — anyone else gets `403`.
+
+### `PATCH /properties/:id` (permission: `PROPERTIES_EDIT`, ownership enforced for non-staff)
+Editing a `published` listing resets it to `pending_review` (documented
+assumption — see `property.service.ts`). ADMIN/SUPER_ADMIN bypass both the
+ownership check and the editable-status restriction.
+
+### `GET /properties/admin/all?status=` (permission: `PROPERTIES_APPROVE`)
+Moderation queue, `SellerPropertyDTO[]` (reused as `AdminPropertyDTO`).
+
+### `PATCH /properties/:id/approve` / `/reject` (permission: `PROPERTIES_APPROVE`)
+Only valid from `pending_review`. Reject requires a `reason` in the body.
+Both record an audit entry (`PROPERTY_APPROVED` / `PROPERTY_REJECTED`).
+
+### `PATCH /properties/:id/feature` / `/status` (permission: `PROPERTIES_EDIT`)
+Toggle `featured`, or set lifecycle status to `sold`/`inactive`/`published`.
+
+### `DELETE /properties/:id` (permission: `PROPERTIES_DELETE` — ADMIN/SUPER_ADMIN only)
+Sellers cannot delete their own listings by design (not in their permission set).
+
+**Verified via smoke test (2026-09-12):** full lifecycle draft → submit →
+moderation queue → approve → appears in public search; Seller B editing
+Seller A's property → `403`; unpublished properties absent from
+`/properties` search results.
+
 ## Planned (mounted in `src/routes/index.ts` as each module lands)
 
 ```
-/properties       CRUD, moderation (approve/reject/feature/deactivate/mark-sold)
-/search           Public property search — filters per §16 of the product spec
+/search           (currently folded into GET /properties — split out if a
+                   dedicated search service/index, e.g. Atlas Search, is
+                   introduced later per docs/ARCHITECTURE.md)
 /shortlists       Add/remove/list — buyer-only, duplicate-prevented
 /inquiries        Buyer creates, broker/admin manage; never exposes seller contact
 /leads            Broker pipeline, admin assignment/reassignment
