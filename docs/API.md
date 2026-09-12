@@ -32,12 +32,40 @@ Clears cookies, records a `LOGOUT` audit entry.
 ### `GET /auth/me` (auth required)
 Returns the current user's `PrivateUserDTO`.
 
-### `GET /users` (permission: `USERS_VIEW` — ADMIN/SUPER_ADMIN)
-Optional `?role=` filter. Staff directory, not a public user search.
+### `GET /users?role=&search=` (permission: `USERS_VIEW` — ADMIN/SUPER_ADMIN)
+`search` matches name or email (case-insensitive substring) — this is the
+lookup the admin "assign role" UI uses; there's no separate username field,
+email is the unique login identifier.
 
 ### `PATCH /users/:id/status` (permission: `USERS_MANAGE`)
 Body: `{ isActive }`. Activates/deactivates an account; records
 `USER_DEACTIVATED` audit entry.
+
+### `PATCH /users/:id/role` (permission: `USERS_MANAGE`)
+Body: `{ role }`. `USERS_MANAGE` (ADMIN + SUPER_ADMIN) lets you move a user
+between `BUYER`/`SELLER`/`BROKER`. Touching the `ADMIN`/`SUPER_ADMIN` tier
+— either as the new role or the target's current role — requires
+`ADMINS_MANAGE` (SUPER_ADMIN only); enforced in `user.service.ts`, not just
+the route, so it can't be bypassed. Self-role-change is blocked outright
+(400) to avoid accidental lockout. Records a `ROLE_CHANGED` audit entry
+with `{ from, to }`.
+
+### `POST /auth/forgot-password` / `POST /auth/reset-password`
+Always returns the same success message regardless of whether the email
+exists (prevents account enumeration). The reset token is a random 32-byte
+value; only its SHA-256 hash is persisted (`resetPasswordTokenHash`,
+`resetPasswordExpiresAt`, both `select: false`), expires in 1 hour, and is
+single-use. Successful reset bumps `tokenVersion`, invalidating every
+outstanding session. Delivery goes through `utils/email.ts`, which logs
+the reset link instead of sending when `RESEND_API_KEY` isn't configured
+(`integrations.email` is `false`) — verified in development via the
+server log.
+
+**Verified via smoke test (2026-09-12):** ADMIN can promote a BUYER to
+BROKER but gets `403` promoting to `SUPER_ADMIN`; ADMIN changing their own
+role gets `400`; SUPER_ADMIN can promote across any tier. Full forgot/reset
+cycle: token logged in dev → reset succeeds → old password rejected → new
+password works → reusing the same token fails.
 
 ### `GET /properties` (public, `optionalAuth`)
 Query params validated by `propertySearchSchema`: `q, city, state, category,

@@ -7,7 +7,7 @@ import { setAuthCookies, clearAuthCookies } from "./auth.cookies.js";
 import { toPrivateUserDTO } from "../users/user.dto.js";
 import { recordAudit } from "../audit/audit.service.js";
 import { AUTH_COOKIES } from "@fixora/config";
-import type { RegisterInput, LoginInput } from "@fixora/validation";
+import type { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput } from "@fixora/validation";
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const input = req.body as RegisterInput;
@@ -41,6 +41,19 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
   }
   clearAuthCookies(res);
   sendSuccess(res, null, "Logged out successfully");
+});
+
+export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body as ForgotPasswordInput;
+  await authService.requestPasswordReset(email);
+  // Always the same response, whether or not the email exists — prevents account enumeration.
+  sendSuccess(res, null, "If an account exists for that email, a reset link has been sent.");
+});
+
+export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { token, password } = req.body as ResetPasswordInput;
+  await authService.resetPassword(token, password);
+  sendSuccess(res, null, "Password reset successfully. Please log in with your new password.");
 });
 
 export const me = asyncHandler(async (req: Request, res: Response) => {

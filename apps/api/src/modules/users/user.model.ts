@@ -16,6 +16,10 @@ const userSchema = new Schema(
     /** Bumped on password change or explicit "logout everywhere" to invalidate outstanding refresh tokens. */
     tokenVersion: { type: Number, default: 0 },
 
+    /** Hashed (never store the raw token) and time-limited; both null once unused or consumed. */
+    resetPasswordTokenHash: { type: String, default: null, select: false },
+    resetPasswordExpiresAt: { type: Date, default: null, select: false },
+
     /**
      * Broker-specific operational fields. Kept on the User document rather
      * than a separate collection since brokers are a small, low-churn set;

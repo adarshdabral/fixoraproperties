@@ -1,11 +1,15 @@
 import { Router } from "express";
+import { z } from "zod";
 import { requireAuth } from "../../middleware/auth.js";
 import { requirePermission } from "../../middleware/permission.js";
+import { validate } from "../../middleware/validate.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { sendSuccess } from "../../utils/apiResponse.js";
 import { AppError } from "../../utils/AppError.js";
+import { ROLES, type Role } from "@fixora/types";
 import { UserModel } from "./user.model.js";
 import { toPrivateUserDTO } from "./user.dto.js";
+import * as userService from "./user.service.js";
 
 const router = Router();
 
@@ -20,7 +24,8 @@ router.get(
   requirePermission("USERS_VIEW"),
   asyncHandler(async (req, res) => {
     const role = typeof req.query.role === "string" ? req.query.role : undefined;
-    const users = await UserModel.find(role ? { role } : {}).sort({ createdAt: -1 }).limit(200);
+    const search = typeof req.query.search === "string" ? req.query.search : undefined;
+    const users = await userService.searchUsers({ role, search });
     sendSuccess(res, { users: users.map(toPrivateUserDTO) });
   })
 );
@@ -47,6 +52,26 @@ router.patch(
     });
 
     sendSuccess(res, { user: toPrivateUserDTO(user) });
+  })
+);
+
+const changeRoleSchema = z.object({ role: z.enum(ROLES as unknown as [string, ...string[]]) });
+
+/**
+ * Role assignment by email lookup (there is no separate "username" field —
+ * email is the unique login identifier). ADMIN can move a user between
+ * BUYER/SELLER/BROKER; only SUPER_ADMIN can touch the ADMIN/SUPER_ADMIN
+ * tier — enforced in user.service#changeUserRole, not just here.
+ */
+router.patch(
+  "/:id/role",
+  requireAuth(),
+  requirePermission("USERS_MANAGE"),
+  validate(changeRoleSchema),
+  asyncHandler(async (req, res) => {
+    const { role } = req.body as { role: Role };
+    const user = await userService.changeUserRole(req.user!.id, req.user!.role, req.params.id as string, role, req);
+    sendSuccess(res, { user: toPrivateUserDTO(user) }, "Role updated");
   })
 );
 
