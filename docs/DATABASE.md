@@ -13,7 +13,7 @@ MongoDB via Mongoose. One database per environment (`fixora_dev`,
 | `shortlists` | 🚧 planned | `(buyerId, propertyId)` unique compound index to prevent duplicates. |
 | `inquiries` | 🚧 planned | `buyerId`, `propertyId`, `leadId`. |
 | `leads` | 🚧 planned | `buyerId`, `propertyId`, `status`, `source`. No per-broker `assignedTo` — the admin team manages the whole pool via `LEADS_VIEW`/`LEADS_EDIT`. |
-| `platform_settings` | ✅ implemented | Singleton document holding `platformFeePercent` (admin-configurable, default 2%). Always queried with no filter and upserted in place — see `apps/api/src/modules/settings/`. |
+| `platform_settings` | ✅ implemented | Singleton document holding `platformFeePercent` (admin-configurable, default 2%). Always queried with no filter and upserted in place — see `backend/src/modules/settings/`. |
 | `ai_conversations` / `ai_messages` | 🚧 planned (Phase 3) | Conversation + message history for the AI assistant, including tool-call records. |
 | `notifications` | 🚧 planned | In-app notifications, extensible to email/WhatsApp/SMS/push per `NOTIFICATION_TYPES`. |
 | `property_views` | 🚧 planned | Analytics event log — property views, shortlist adds, AI clicks, WhatsApp clicks. |

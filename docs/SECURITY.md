@@ -25,10 +25,12 @@ responses — not by hiding them in the UI.
 ## Authentication
 
 - Passwords hashed with bcrypt (cost factor 12), never stored or logged.
-- Access + refresh tokens are JWTs delivered as `httpOnly`, `sameSite=lax`
-  cookies (`apps/api/src/modules/auth/auth.cookies.ts`) — never exposed to
-  JS, never stored in `localStorage`. The refresh cookie is scoped to
-  `/api/v1/auth` only.
+- Access + refresh tokens are JWTs delivered as `httpOnly` cookies
+  (`backend/src/modules/auth/auth.cookies.ts`) — never exposed to JS, never
+  stored in `localStorage`. The refresh cookie is scoped to `/api/v1/auth`
+  only. `SameSite` is `Lax` in development and `None` (with `Secure`) in
+  production, since the deployed frontend (Vercel) and backend (Render) are
+  different sites — see docs/DEPLOYMENT.md.
 - `requireAuth()` re-verifies the user against the database on **every**
   request (active status + `tokenVersion`), not just the token signature —
   so deactivation and forced logout take effect immediately.
@@ -40,7 +42,7 @@ responses — not by hiding them in the UI.
   authorization server-side via `requireAuth()` + `requirePermission()` /
   `requireRole()` / `requireOwnership()`. Frontend route guards exist only
   as a UX convenience.
-- Permissions are centralized in `packages/types/src/permissions.ts`
+- Permissions are centralized in `backend/src/shared/types/permissions.ts`
   (`ROLE_PERMISSIONS`) — this is the single source of truth. Do not add
   role checks anywhere else.
 - `SUPER_ADMIN` cannot be created through public registration
@@ -64,7 +66,7 @@ responses — not by hiding them in the UI.
 ## Input handling
 
 - Every request body/query is parsed through a Zod schema
-  (`packages/validation`) via the `validate()` middleware before it reaches
+  (`backend/src/shared/validation`) via the `validate()` middleware before it reaches
   a controller. Unvalidated input never reaches business logic.
 - Mongoose schemas provide a second layer of type/enum enforcement at the
   database boundary.
@@ -81,9 +83,9 @@ responses — not by hiding them in the UI.
 
 ## Audit logging
 
-- `recordAudit()` (`apps/api/src/modules/audit/audit.service.ts`) writes to
+- `recordAudit()` (`backend/src/modules/audit/audit.service.ts`) writes to
   the `audit_logs` collection for sensitive actions (see
-  `AUDIT_ACTIONS` in `packages/types`). Currently wired: `LOGIN`, `LOGOUT`,
+  `AUDIT_ACTIONS` in `backend/src/shared/types`). Currently wired: `LOGIN`, `LOGOUT`,
   `USER_DEACTIVATED`, `PLATFORM_FEE_UPDATED`. Wired incrementally as each
   further module (property approval, admin actions) lands.
 - Audit recording failures are caught and logged — they must never break

@@ -20,7 +20,7 @@ WHATSAPP_BUSINESS_ACCOUNT_ID
 WHATSAPP_VERIFY_TOKEN
 ```
 
-`integrations.whatsapp` (`apps/api/src/config/env.ts`) is `true` only when
+`integrations.whatsapp` (`backend/src/config/env.ts`) is `true` only when
 all of these are present. When false, the "Continue on WhatsApp" action
 should be hidden or return a clear "not configured" response — never a
 silent no-op or a fabricated confirmation.

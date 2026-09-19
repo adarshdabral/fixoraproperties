@@ -12,34 +12,36 @@ server-side.
 
 ### Platform fee
 
-`PlatformSettingsModel` (`apps/api/src/modules/settings/`) holds a single
+`PlatformSettingsModel` (`backend/src/modules/settings/`) holds a single
 `platformFeePercent` value, changeable only by `SUPER_ADMIN` (permission
 `SYSTEM_SETTINGS_MANAGE`, `PATCH /settings/platform-fee`). Sellers always see
 and edit their own raw ask price (`SellerPropertyDTO`). Buyer-facing DTOs
 (`PublicPropertyDTO`, from `toPublicPropertyDTO`) mark that price up by the
-current fee percentage — see `apps/api/src/modules/properties/property.dto.ts`.
+current fee percentage — see `backend/src/modules/properties/property.dto.ts`.
 Price-range search filters arrive in buyer-facing terms and are converted back
 to the raw ask price before querying MongoDB (`property.service.ts`); sort
 order is unaffected since a fixed percentage markup is monotonic.
 
-## Monorepo layout
+## Repo layout
 
 ```
 fixora-properties/            (repo root — this directory)
-├── apps/
-│   ├── web/                  Next.js 15 (App Router) — public site + all dashboards
-│   └── api/                  Express + TypeScript REST API
-├── packages/
-│   ├── types/                 Shared enums, roles, permissions, API envelope types
-│   ├── validation/             Shared Zod schemas (used by both API and web forms)
-│   └── config/                 Shared constants (cookie names, pagination defaults)
+├── backend/                  Express + TypeScript REST API — deployed on Render
+│   └── src/shared/            Local copy of roles, permissions, DTOs, Zod schemas
+├── frontend/                  Next.js 15 (App Router) — public site + all dashboards — deployed on Vercel
+│   └── lib/shared/             Local copy of roles, permissions, DTOs, Zod schemas
 ├── docs/                       This documentation set
 └── scripts/                    One-off / operational scripts
 ```
 
-npm workspaces wire these together; `@fixora/types` and `@fixora/validation`
-are built to `dist/` and consumed by both apps so the request/response shape
-and the validation rules are defined exactly once.
+`backend/` and `frontend/` are **independent projects**, each with its own
+`package.json` and no dependency on the other or on anything above itself —
+that's what makes each deployable on its own (Render pointed at `backend/`,
+Vercel pointed at `frontend/`) with no monorepo build configuration on
+either platform. The cost of that independence: `src/shared` and
+`lib/shared` are duplicated, not a shared package — a role, permission, DTO,
+or Zod schema change must be made in **both** places by hand. See the root
+[README](../README.md#repo-layout).
 
 ## Request flow (backend)
 
@@ -86,9 +88,9 @@ product spec for the bar to raise these to before calling Phase 1 done.
 ## Key design decisions
 
 - **Roles vs. permissions**: authorization checks always go through the
-  centralized `ROLE_PERMISSIONS` map in `packages/types/src/permissions.ts`,
+  centralized `ROLE_PERMISSIONS` map in `backend/src/shared/types/permissions.ts`,
   never ad-hoc role string comparisons scattered across routes. See
-  `requirePermission()` in `apps/api/src/middleware/permission.ts`.
+  `requirePermission()` in `backend/src/middleware/permission.ts`.
 - **Ownership is always re-derived server-side.** `requireOwnership()` takes a
   function that loads the resource from the database and compares its owner
   field to `req.user.id` — it never trusts a client-supplied `ownerId`.

@@ -1,0 +1,23 @@
+export const NOTIFICATION_TYPES = [
+  "PROPERTY_APPROVED",
+  "PROPERTY_REJECTED",
+  "INQUIRY_RECEIVED",
+  "LEAD_STATUS_UPDATED",
+  "VISIT_SCHEDULED",
+] as const;
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+export const AUDIT_ACTIONS = [
+  "LOGIN",
+  "LOGOUT",
+  "ROLE_CHANGED",
+  "USER_DEACTIVATED",
+  "PROPERTY_APPROVED",
+  "PROPERTY_REJECTED",
+  "PROPERTY_UPDATED",
+  "LEAD_CREATED",
+  "PLATFORM_FEE_UPDATED",
+  "ADMIN_CREATED",
+  "PERMISSION_CHANGED",
+] as const;
+export type AuditAction = (typeof AUDIT_ACTIONS)[number];

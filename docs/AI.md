@@ -47,7 +47,7 @@ lead-qualification quality.
 ## Configuration
 
 `OPENAI_API_KEY` / `OPENAI_MODEL` (see `.env.example`). When unset,
-`integrations.ai` (`apps/api/src/config/env.ts`) is `false` and the AI
+`integrations.ai` (`backend/src/config/env.ts`) is `false` and the AI
 routes should respond with a clear "AI assistant is not configured"
 error rather than crashing — the rest of the platform (search, listings,
 enquiries) must keep working without it.
