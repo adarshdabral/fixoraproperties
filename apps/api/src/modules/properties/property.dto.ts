@@ -1,7 +1,8 @@
 import type { PropertyDocument } from "./property.model.js";
-import type { PublicPropertyDTO, SellerPropertyDTO, AdminPropertyDTO, BrokerPropertyDTO } from "@fixora/types";
+import type { PublicPropertyDTO, SellerPropertyDTO, AdminPropertyDTO } from "@fixora/types";
+import { applyPlatformFee } from "../settings/settings.service.js";
 
-export type { PublicPropertyDTO, SellerPropertyDTO, AdminPropertyDTO, BrokerPropertyDTO };
+export type { PublicPropertyDTO, SellerPropertyDTO, AdminPropertyDTO };
 
 /**
  * Property DTOs never include seller contact details (phone/email) —
@@ -63,8 +64,17 @@ function baseFields(property: PropertyDocument): BaseFields {
   };
 }
 
-export function toPublicPropertyDTO(property: PropertyDocument): PublicPropertyDTO {
-  return baseFields(property);
+/**
+ * Buyer-facing price is the seller's ask price marked up by the current
+ * platform fee percentage (admin-configurable, see settings.service.ts) —
+ * sellers always see and enter their real ask price (toSellerPropertyDTO).
+ */
+export function toPublicPropertyDTO(property: PropertyDocument, platformFeePercent: number): PublicPropertyDTO {
+  const fields = baseFields(property);
+  return {
+    ...fields,
+    price: { ...fields.price, amount: applyPlatformFee(fields.price.amount, platformFeePercent) },
+  };
 }
 
 export function toSellerPropertyDTO(property: PropertyDocument): SellerPropertyDTO {

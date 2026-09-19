@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from "@/lib/api";
-import type { PrivateUserDTO, AdminDashboardDTO, SellerPropertyDTO } from "@fixora/types";
+import type { PrivateUserDTO, AdminDashboardDTO, SellerPropertyDTO, AdminInquiryDTO } from "@fixora/types";
 import type { Role } from "@fixora/types";
 
 export function searchUsers(search: string, role?: string) {
@@ -30,4 +30,16 @@ export function approveProperty(id: string) {
 
 export function rejectProperty(id: string, reason: string) {
   return api.patch<{ property: SellerPropertyDTO }>(`/properties/${id}/reject`, { reason });
+}
+
+export function listInquiries() {
+  return api.get<{ inquiries: AdminInquiryDTO[] }>("/inquiries");
+}
+
+export function getPlatformFee() {
+  return api.get<{ platformFeePercent: number }>("/settings/platform-fee");
+}
+
+export function setPlatformFee(platformFeePercent: number) {
+  return api.patch<{ platformFeePercent: number }>("/settings/platform-fee", { platformFeePercent });
 }

@@ -5,12 +5,11 @@ document records the intended design.
 
 ## Purpose
 
-Buyers never get a seller's phone number. Once a lead is qualified
-(via manual enquiry or the AI assistant), the platform hands a
-**structured** summary to one of Fixora's authorized representatives —
-Mr. Vansh Kakkar or Dr. Neeraj Sengar — over WhatsApp, using the Meta
-WhatsApp Cloud API. The representative, not the platform, then contacts
-the seller.
+Buyers never get a seller's phone number. Once a lead is qualified (via
+manual enquiry or the AI assistant), the platform hands a **structured**
+summary to the Fixora admin team over WhatsApp, using the Meta WhatsApp
+Cloud API. The admin team, not the platform, then follows up with the
+seller.
 
 ## Configuration
 
@@ -31,14 +30,10 @@ silent no-op or a fabricated confirmation.
 ```
 Enquiry / AI conversation
    → Lead created or updated (status, source)
-   → LeadAssignmentService resolves the assigned broker
-        (round-robin / manual / admin override — no hardcoded
-        "if lead then Vansh" branching; see LEADS.md-equivalent
-        section once the leads module lands)
-   → WhatsAppService sends a structured message to the assigned broker's
+   → WhatsAppService sends a structured message to the admin team's
      WhatsApp number containing:
        Buyer Name, Requirement, Location, Budget, Property Type,
-       Bedrooms, Selected Property, Lead ID, Assigned Broker
+       Bedrooms, Selected Property, Lead ID
 ```
 
 `WhatsAppService` is a thin, swappable wrapper around the Cloud API so the

@@ -76,11 +76,21 @@ export interface SellerPropertyDTO extends PublicPropertyDTO {
 }
 
 export type AdminPropertyDTO = SellerPropertyDTO;
-export type BrokerPropertyDTO = SellerPropertyDTO;
 
 export interface InquiryDTO {
   id: string;
   propertyId: string;
+  message: string;
+  status: string;
+  source: string;
+  createdAt: string;
+}
+
+/** Admin-only view of an enquiry — includes who sent it and for which property, unlike InquiryDTO. */
+export interface AdminInquiryDTO {
+  id: string;
+  buyer: { id: string; name: string; email: string; phone: string } | null;
+  property: { id: string; title: string; slug: string } | null;
   message: string;
   status: string;
   source: string;
@@ -97,7 +107,6 @@ export interface LeadDTO {
   id: string;
   buyerId: string;
   propertyId: string;
-  assignedTo: string | null;
   source: string;
   requirements: Record<string, unknown>;
   status: string;
@@ -107,9 +116,12 @@ export interface LeadDTO {
 }
 
 export interface AdminDashboardDTO {
-  users: { total: number; buyers: number; sellers: number; brokers: number };
+  users: { total: number; buyers: number; sellers: number };
   properties: { active: number; pending: number; rejected: number; sold: number };
   leads: { new: number; qualified: number; negotiation: number; converted: number };
-  transactions: { completed: number };
-  commissions: { total: number };
+  inquiries: { total: number };
+}
+
+export interface PlatformSettingsDTO {
+  platformFeePercent: number;
 }

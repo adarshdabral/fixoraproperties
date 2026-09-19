@@ -43,12 +43,17 @@ Body: `{ isActive }`. Activates/deactivates an account; records
 
 ### `PATCH /users/:id/role` (permission: `USERS_MANAGE`)
 Body: `{ role }`. `USERS_MANAGE` (ADMIN + SUPER_ADMIN) lets you move a user
-between `BUYER`/`SELLER`/`BROKER`. Touching the `ADMIN`/`SUPER_ADMIN` tier
-— either as the new role or the target's current role — requires
-`ADMINS_MANAGE` (SUPER_ADMIN only); enforced in `user.service.ts`, not just
-the route, so it can't be bypassed. Self-role-change is blocked outright
-(400) to avoid accidental lockout. Records a `ROLE_CHANGED` audit entry
-with `{ from, to }`.
+between `BUYER`/`SELLER`. Touching the `ADMIN`/`SUPER_ADMIN` tier — either as
+the new role or the target's current role — requires `ADMINS_MANAGE`
+(SUPER_ADMIN only); enforced in `user.service.ts`, not just the route, so it
+can't be bypassed. Self-role-change is blocked outright (400) to avoid
+accidental lockout. Records a `ROLE_CHANGED` audit entry with `{ from, to }`.
+
+### `GET /settings/platform-fee` / `PATCH /settings/platform-fee` (permission: `SYSTEM_SETTINGS_MANAGE` — SUPER_ADMIN only)
+Body for `PATCH`: `{ platformFeePercent }` (0–100). This is the percentage
+added to a seller's ask price wherever a buyer sees it (see
+`toPublicPropertyDTO`); sellers always see and enter their raw ask price.
+Records a `PLATFORM_FEE_UPDATED` audit entry.
 
 ### `POST /auth/forgot-password` / `POST /auth/reset-password`
 Always returns the same success message regardless of whether the email
@@ -62,7 +67,7 @@ the reset link instead of sending when `RESEND_API_KEY` isn't configured
 server log.
 
 **Verified via smoke test (2026-09-12):** ADMIN can promote a BUYER to
-BROKER but gets `403` promoting to `SUPER_ADMIN`; ADMIN changing their own
+SELLER but gets `403` promoting to `SUPER_ADMIN`; ADMIN changing their own
 role gets `400`; SUPER_ADMIN can promote across any tier. Full forgot/reset
 cycle: token logged in dev → reset succeeds → old password rejected → new
 password works → reusing the same token fails.
@@ -71,12 +76,15 @@ password works → reusing the same token fails.
 Query params validated by `propertySearchSchema`: `q, city, state, category,
 listingType, minPrice, maxPrice, bedrooms, bathrooms, minArea, maxArea,
 constructionStatus, negotiable, featured, page, limit, sort`. Only ever
-queries `status: "published"`. Returns `PaginatedResult<PublicPropertyDTO>`.
+queries `status: "published"`. Returns `PaginatedResult<PublicPropertyDTO>`,
+whose `price.amount` is the seller's ask price marked up by the current
+platform fee (`minPrice`/`maxPrice` are interpreted in the same fee-inclusive
+terms and converted back before querying).
 
 ### `GET /properties/slug/:slug` (public)
-Single published property by slug, `PublicPropertyDTO`. 404s for any
-non-published status — a pending/rejected/draft property is invisible to
-the public even if you know its slug.
+Single published property by slug, `PublicPropertyDTO` (fee-inclusive price,
+as above). 404s for any non-published status — a pending/rejected/draft
+property is invisible to the public even if you know its slug.
 
 ### `POST /properties` (permission: `PROPERTIES_CREATE` — SELLER)
 Creates a `status: "draft"` property owned by `req.user.id` (never a
@@ -89,7 +97,8 @@ The caller's own properties in every status, `SellerPropertyDTO[]`.
 `draft`/`rejected` → `pending_review`.
 
 ### `GET /properties/:id` (auth required)
-Owner, or ADMIN/SUPER_ADMIN/BROKER — anyone else gets `403`.
+Owner, or ADMIN/SUPER_ADMIN — anyone else gets `403`. Returns
+`SellerPropertyDTO` with the raw ask price (no fee markup).
 
 ### `PATCH /properties/:id` (permission: `PROPERTIES_EDIT`, ownership enforced for non-staff)
 Editing a `published` listing resets it to `pending_review` (documented
@@ -103,8 +112,16 @@ Moderation queue, `SellerPropertyDTO[]` (reused as `AdminPropertyDTO`).
 Only valid from `pending_review`. Reject requires a `reason` in the body.
 Both record an audit entry (`PROPERTY_APPROVED` / `PROPERTY_REJECTED`).
 
-### `PATCH /properties/:id/feature` / `/status` (permission: `PROPERTIES_EDIT`)
-Toggle `featured`, or set lifecycle status to `sold`/`inactive`/`published`.
+### `PATCH /properties/:id/feature` (permission: `PROPERTIES_APPROVE` — ADMIN/SUPER_ADMIN only)
+Toggle `featured`. Staff-only — promotional placement isn't a seller's call.
+
+### `PATCH /properties/:id/status` (permission: `PROPERTIES_EDIT`, ownership enforced for non-staff)
+Set lifecycle status to `sold`/`inactive`/`published`. A non-staff caller
+(the owning seller) can set `sold`/`inactive` on their own listing but gets
+`403` requesting `published` — publishing only happens through
+submit → pending_review → approve. Without this restriction a seller
+holding `PROPERTIES_EDIT` could publish (or unpublish) any listing directly,
+bypassing admin review entirely.
 
 ### `DELETE /properties/:id` (permission: `PROPERTIES_DELETE` — ADMIN/SUPER_ADMIN only)
 Sellers cannot delete their own listings by design (not in their permission set).
@@ -123,50 +140,34 @@ The caller's shortlisted properties, `PublicPropertyDTO[]`.
 
 ### `POST /inquiries` (role: BUYER)
 Body: `{ propertyId, message }`. This is the controlled-communication entry
-point: it creates a `Lead` (which resolves broker assignment via
-`assignBroker()`), then an `Inquiry` referencing it. Response message is
-literally "Your enquiry has been received by Fixora" — never a seller
-contact detail. 404s if the property isn't published.
+point: it creates a `Lead` for the admin team to review, then an `Inquiry`
+referencing it. Response message is literally "Your enquiry has been
+received by Fixora" — never a seller contact detail. 404s if the property
+isn't published.
 
 ### `GET /inquiries/mine` / `GET /inquiries/mine/:id` (role: BUYER)
 Own inquiries only — ownership checked against `req.user.id`, not a
 client-supplied id.
 
-### `GET /inquiries/assigned` (role: BROKER)
-Inquiries whose linked lead is assigned to the caller.
-
 ### `GET /inquiries` (permission: `INQUIRIES_VIEW`, role: ADMIN/SUPER_ADMIN)
 All inquiries.
 
-### `GET /leads/mine` (role: BROKER)
-Leads assigned to the caller. A broker requesting another broker's lead by
-id elsewhere (`getOwnedLead`) gets `403`, not the lead.
-
-### `GET /leads?status=&assignedTo=` (permission: `LEADS_VIEW` + role ADMIN/SUPER_ADMIN)
-All leads — deliberately gated to staff even though `BROKER` also holds
-`LEADS_VIEW` in the permission map (that permission covers a broker's own
-`/leads/mine`, not the cross-broker list).
+### `GET /leads?status=` (permission: `LEADS_VIEW` — ADMIN/SUPER_ADMIN)
+All leads. There is no per-broker ownership — the admin team manages the
+whole pool.
 
 ### `PATCH /leads/:id/status` / `POST /leads/:id/notes` (permission: `LEADS_EDIT`)
-Owning broker or staff.
-
-### `PATCH /leads/:id/assign` (permission: `LEADS_ASSIGN` — ADMIN/SUPER_ADMIN)
-Manual override of `LeadAssignmentService`'s automatic assignment; records
-a `LEAD_REASSIGNED` audit entry with the previous and new broker.
+Staff only.
 
 **Verified via smoke test (2026-09-12):** buyer enquiry → lead auto-created
-→ assigned to the (only) active broker → visible in that broker's
-`/leads/mine` and `/inquiries/assigned` — with no seller contact field
-anywhere in any response along the way.
+→ visible in the staff `/leads` list and `/inquiries` list — with no seller
+contact field anywhere in any response along the way.
 
 ## Planned (mounted in `src/routes/index.ts` as each module lands)
 
 ```
-/negotiations     Broker-managed, tied to a lead
-/transactions     Broker/admin-managed, drives commission calculation
-/commissions      Admin-managed ledger
 /ai               Chat endpoint — tool-calling into /search, /properties, /leads
-/whatsapp         Webhook + outbound handoff to Vansh Kakkar / Dr. Neeraj Sengar
+/whatsapp         Webhook + outbound handoff to the seller
 /notifications    In-app notification feed
 /analytics        Admin/seller-facing aggregates
 /admin            Cross-cutting admin operations not owned by a single module

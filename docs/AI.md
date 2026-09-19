@@ -7,9 +7,10 @@ records the intended design so it isn't invented ad hoc later.
 ## Non-negotiable rule
 
 The AI must never invent properties, prices, availability, amenities,
-seller information, discounts, commission terms, or legal claims. Every
-property fact it states must come from a real database record it fetched
-via a tool call. If data isn't available, it says so.
+seller information, discounts, or legal claims. Every property fact it
+states must come from a real database record it fetched via a tool call —
+including price, which must reflect the current platform fee markup, never
+a guessed figure. If data isn't available, it says so.
 
 ## Architecture
 
@@ -33,8 +34,8 @@ property via search or via the assistant.
 - `captureLead` — incrementally collects name/phone/budget/requirements
   without a form
 - `createInquiry` — creates a real `Inquiry`/`Lead` record
-- `handoffToBroker` — hands the structured requirement + selected property
-  to the WhatsApp module (see WHATSAPP.md)
+- `handoffToAdmin` — hands the structured requirement + selected property
+  to the WhatsApp module for the admin team (see WHATSAPP.md)
 
 ## Conversation storage
 

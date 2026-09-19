@@ -6,6 +6,7 @@ import shortlistRoutes from "../modules/shortlists/shortlist.routes.js";
 import inquiryRoutes from "../modules/inquiries/inquiry.routes.js";
 import leadRoutes from "../modules/leads/lead.routes.js";
 import adminRoutes from "../modules/admin/admin.routes.js";
+import settingsRoutes from "../modules/settings/settings.routes.js";
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.use("/shortlists", shortlistRoutes);
 router.use("/inquiries", inquiryRoutes);
 router.use("/leads", leadRoutes);
 router.use("/admin", adminRoutes);
+router.use("/settings", settingsRoutes);
 
 // Additional module routers (negotiations, transactions, commissions, ai,
 // whatsapp, notifications, analytics, uploads) are mounted here as each

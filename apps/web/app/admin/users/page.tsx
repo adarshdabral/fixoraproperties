@@ -8,8 +8,9 @@ export default function AdminUsersPage() {
     <div>
       <h1 className="font-display text-2xl text-ink">Users & Roles</h1>
       <p className="mt-1 text-sm text-ink-300">
-        Look up a user by email and assign their role. Promoting to or from Admin/Super Admin
-        requires a Super Admin account.
+        Every buyer and seller's full details — name, email, phone, join date, status — with
+        search and role filters. Promoting to or from Admin/Super Admin requires a Super Admin
+        account.
       </p>
       <div className="mt-6">
         <UserRoleManager />

@@ -14,7 +14,7 @@ import * as userService from "./user.service.js";
 const router = Router();
 
 /**
- * Admin/super-admin user directory. Buyer/seller/broker self-service lives
+ * Admin/super-admin user directory. Buyer/seller self-service lives
  * under /auth/me and each role's own profile endpoints, not here — this
  * route is for staff managing accounts.
  */
@@ -60,8 +60,8 @@ const changeRoleSchema = z.object({ role: z.enum(ROLES as unknown as [string, ..
 /**
  * Role assignment by email lookup (there is no separate "username" field —
  * email is the unique login identifier). ADMIN can move a user between
- * BUYER/SELLER/BROKER; only SUPER_ADMIN can touch the ADMIN/SUPER_ADMIN
- * tier — enforced in user.service#changeUserRole, not just here.
+ * BUYER/SELLER; only SUPER_ADMIN can touch the ADMIN/SUPER_ADMIN tier —
+ * enforced in user.service#changeUserRole, not just here.
  */
 router.patch(
   "/:id/role",

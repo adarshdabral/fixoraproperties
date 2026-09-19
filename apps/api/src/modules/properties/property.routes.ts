@@ -52,8 +52,14 @@ router.post(
 // --- Admin/super-admin moderation actions ---
 router.patch("/:id/approve", requireAuth(), requirePermission("PROPERTIES_APPROVE"), propertyController.approve);
 router.patch("/:id/reject", requireAuth(), requirePermission("PROPERTIES_APPROVE"), propertyController.reject);
-router.patch("/:id/feature", requireAuth(), requirePermission("PROPERTIES_EDIT"), propertyController.feature);
-router.patch("/:id/status", requireAuth(), requirePermission("PROPERTIES_EDIT"), propertyController.setStatus);
+router.patch("/:id/feature", requireAuth(), requirePermission("PROPERTIES_APPROVE"), propertyController.feature);
+router.patch(
+  "/:id/status",
+  requireAuth(),
+  requirePermission("PROPERTIES_EDIT"),
+  requireOwnership(getSellerIdOwner),
+  propertyController.setStatus
+);
 router.delete("/:id", requireAuth(), requirePermission("PROPERTIES_DELETE"), propertyController.remove);
 
 export default router;

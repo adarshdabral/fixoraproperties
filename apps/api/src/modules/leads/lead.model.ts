@@ -15,8 +15,6 @@ const leadSchema = new Schema(
     buyerId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     propertyId: { type: Schema.Types.ObjectId, ref: "Property", required: true },
 
-    assignedTo: { type: Schema.Types.ObjectId, ref: "User", default: null, index: true },
-
     source: { type: String, enum: LEAD_SOURCES, required: true },
     requirements: { type: Schema.Types.Mixed, default: {} },
 
@@ -25,8 +23,6 @@ const leadSchema = new Schema(
   },
   { timestamps: true }
 );
-
-leadSchema.index({ assignedTo: 1, status: 1 });
 
 export type LeadDocument = HydratedDocument<InferSchemaType<typeof leadSchema>>;
 export const LeadModel = model("Lead", leadSchema);

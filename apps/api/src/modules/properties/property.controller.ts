@@ -5,17 +5,22 @@ import { AppError } from "../../utils/AppError.js";
 import * as propertyService from "./property.service.js";
 import { toPublicPropertyDTO, toSellerPropertyDTO } from "./property.dto.js";
 import { recordAudit } from "../audit/audit.service.js";
+import { getPlatformFeePercent } from "../settings/settings.service.js";
 import type { CreatePropertyInput, UpdatePropertyInput, PropertySearchInput } from "@fixora/validation";
 
 export const search = asyncHandler(async (req: Request, res: Response) => {
   const filters = req.query as unknown as PropertySearchInput;
-  const result = await propertyService.searchPublishedProperties(filters);
-  sendSuccess(res, { ...result, items: result.items.map(toPublicPropertyDTO) });
+  const feePercent = await getPlatformFeePercent();
+  const result = await propertyService.searchPublishedProperties(filters, feePercent);
+  sendSuccess(res, { ...result, items: result.items.map((item) => toPublicPropertyDTO(item, feePercent)) });
 });
 
 export const getBySlug = asyncHandler(async (req: Request, res: Response) => {
-  const property = await propertyService.getPublishedBySlug(req.params.slug as string);
-  sendSuccess(res, { property: toPublicPropertyDTO(property) });
+  const [property, feePercent] = await Promise.all([
+    propertyService.getPublishedBySlug(req.params.slug as string),
+    getPlatformFeePercent(),
+  ]);
+  sendSuccess(res, { property: toPublicPropertyDTO(property, feePercent) });
 });
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
@@ -32,7 +37,7 @@ export const listMine = asyncHandler(async (req: Request, res: Response) => {
 export const getOwnedOrModerated = asyncHandler(async (req: Request, res: Response) => {
   const property = await propertyService.getPropertyById(req.params.id as string);
   const isOwner = property.sellerId.toString() === req.user!.id;
-  const isStaff = ["ADMIN", "SUPER_ADMIN", "BROKER"].includes(req.user!.role);
+  const isStaff = ["ADMIN", "SUPER_ADMIN"].includes(req.user!.role);
   if (!isOwner && !isStaff) throw AppError.forbidden();
   sendSuccess(res, { property: toSellerPropertyDTO(property) });
 });
@@ -81,8 +86,20 @@ export const feature = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, { property: toSellerPropertyDTO(property) });
 });
 
+/**
+ * Sellers may pause/resume their own listing (sold/inactive) but can never
+ * set "published" here — publishing only ever happens through submit →
+ * pending_review → approve (see submit()/approve() above). Without this
+ * check a seller holding PROPERTIES_EDIT could publish any listing directly,
+ * skipping admin review entirely. Ownership is enforced on the route via
+ * requireOwnership() for non-staff; staff bypass both checks.
+ */
 export const setStatus = asyncHandler(async (req: Request, res: Response) => {
   const { status } = req.body as { status: "sold" | "inactive" | "published" };
+  const isStaff = ["ADMIN", "SUPER_ADMIN"].includes(req.user!.role);
+  if (!isStaff && status === "published") {
+    throw AppError.forbidden("Only staff can publish a listing — submit it for review instead");
+  }
   const property = await propertyService.setLifecycleStatus(req.params.id as string, status);
   await recordAudit({ req, action: "PROPERTY_UPDATED", resourceType: "Property", resourceId: property.id, metadata: { status } });
   sendSuccess(res, { property: toSellerPropertyDTO(property) });

@@ -25,7 +25,7 @@ export default async function HomePage() {
         <div className="container-content grid gap-10 py-20 lg:grid-cols-2 lg:items-center lg:py-28">
           <div>
             <p className="inline-flex items-center rounded-full bg-gold-100 px-3 py-1 text-xs font-medium text-gold-600">
-              Brokerage-led. Verified. Confidential.
+              Direct. Verified. Transparent pricing.
             </p>
             <h1 className="mt-5 font-display text-4xl leading-[1.1] text-ink sm:text-5xl">
               Find the right property.
@@ -33,9 +33,9 @@ export default async function HomePage() {
               <span className="italic text-gold-600">We handle the rest.</span>
             </h1>
             <p className="mt-5 max-w-lg text-base text-ink-500">
-              Fixora Properties connects you with verified listings from sellers and builders.
-              Every enquiry is personally managed by a Fixora representative — from the first
-              question to the closing negotiation.
+              Fixora Properties connects buyers with verified listings from sellers and builders.
+              Every enquiry is reviewed by our team, and the price you see already includes our
+              platform fee — no surprises at closing.
             </p>
             <div className="mt-8">
               <HeroSearch />
@@ -46,7 +46,7 @@ export default async function HomePage() {
             <div className="grid grid-cols-2 gap-4">
               <StatCard label="Properties reviewed by our team" value="100%" />
               <StatCard label="Direct seller contact shared" value="0" />
-              <StatCard label="Fixora representatives" value="2" />
+              <StatCard label="Platform fee, always shown" value="Upfront" />
               <StatCard label="Categories covered" value={String(PROPERTY_CATEGORIES.length)} />
             </div>
           </div>
@@ -120,13 +120,13 @@ export default async function HomePage() {
           />
           <FeatureCard
             icon={<Users className="h-5 w-5" />}
-            title="A dedicated representative"
-            description="A named Fixora representative is assigned to your enquiry and stays with it from first contact to closing."
+            title="Reviewed by our team"
+            description="Every enquiry is reviewed by the Fixora team before it's passed along, so nothing gets lost."
           />
           <FeatureCard
             icon={<Handshake className="h-5 w-5" />}
-            title="Managed negotiation"
-            description="Offers, counter-offers, and visit scheduling are coordinated by our team so nothing falls through the cracks."
+            title="Transparent pricing"
+            description="One platform fee, already included in the price you see. Sellers always receive their full ask price."
           />
         </div>
       </section>
@@ -141,8 +141,8 @@ export default async function HomePage() {
             {[
               { step: "1", title: "Search", body: "Filter properties by city, budget, category, and more." },
               { step: "2", title: "Enquire", body: "Request information on any listing in a couple of clicks." },
-              { step: "3", title: "Get connected", body: "A Fixora representative reaches out to guide you — never the seller directly." },
-              { step: "4", title: "Close the deal", body: "We coordinate visits, negotiation, and the paperwork to closing." },
+              { step: "3", title: "Get connected", body: "Our team reviews your enquiry and reaches out to guide you — never the seller directly." },
+              { step: "4", title: "Close the deal", body: "The price you saw already includes our platform fee — no surprises at closing." },
             ].map((item, i) => (
               <Reveal key={item.step} delay={i * 0.05}>
                 <div>

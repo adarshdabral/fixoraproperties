@@ -10,7 +10,6 @@ const inquirySchema = new Schema(
     message: { type: String, required: true, maxlength: 2000 },
     requirements: { type: Schema.Types.Mixed, default: {} },
 
-    assignedTo: { type: Schema.Types.ObjectId, ref: "User", default: null },
     source: { type: String, enum: LEAD_SOURCES, required: true },
 
     /** Mirrors the linked Lead's status at time of read; the Lead is the source of truth (see lead.service.ts). */

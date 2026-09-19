@@ -139,10 +139,18 @@ const SORT_MAP: Record<PropertySearchInput["sort"], Record<string, 1 | -1>> = {
   area_desc: { "specifications.area": -1 },
 };
 
+/**
+ * minPrice/maxPrice arrive in buyer-facing (fee-inclusive) terms since
+ * that's what the buyer sees and types; convert back to the seller's raw
+ * ask price — what's actually stored — before querying. A fixed percentage
+ * markup is monotonic, so sort order by price is unaffected either way.
+ */
 export async function searchPublishedProperties(
-  filters: PropertySearchInput
+  filters: PropertySearchInput,
+  platformFeePercent: number
 ): Promise<PaginatedResult<PropertyDocument>> {
   const query: Record<string, unknown> = { status: "published" };
+  const feeMultiplier = 1 + platformFeePercent / 100;
 
   if (filters.q) query.$text = { $search: filters.q };
   if (filters.city) query["location.city"] = new RegExp(`^${escapeRegex(filters.city)}$`, "i");
@@ -157,8 +165,8 @@ export async function searchPublishedProperties(
 
   if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
     query["price.amount"] = {
-      ...(filters.minPrice !== undefined ? { $gte: filters.minPrice } : {}),
-      ...(filters.maxPrice !== undefined ? { $lte: filters.maxPrice } : {}),
+      ...(filters.minPrice !== undefined ? { $gte: filters.minPrice / feeMultiplier } : {}),
+      ...(filters.maxPrice !== undefined ? { $lte: filters.maxPrice / feeMultiplier } : {}),
     };
   }
   if (filters.minArea !== undefined || filters.maxArea !== undefined) {

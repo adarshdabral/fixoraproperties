@@ -8,7 +8,6 @@ export function toLeadDTO(lead: LeadDocument): LeadDTO {
     id: lead.id,
     buyerId: lead.buyerId.toString(),
     propertyId: lead.propertyId.toString(),
-    assignedTo: lead.assignedTo ? lead.assignedTo.toString() : null,
     source: lead.source,
     requirements: (lead.requirements as Record<string, unknown>) ?? {},
     status: lead.status,

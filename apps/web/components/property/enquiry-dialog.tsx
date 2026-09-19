@@ -15,8 +15,7 @@ import { ShieldCheck } from "lucide-react";
 /**
  * The only enquiry CTA on a property page. It never surfaces a seller
  * phone number — submitting creates an Inquiry (and behind it, a Lead
- * assigned to a Fixora representative) via POST /inquiries. See
- * docs/SECURITY.md.
+ * the admin team reviews) via POST /inquiries. See docs/SECURITY.md.
  */
 export function EnquiryDialog({ propertyId, propertyTitle }: { propertyId: string; propertyTitle: string }) {
   const router = useRouter();
@@ -68,7 +67,7 @@ export function EnquiryDialog({ propertyId, propertyTitle }: { propertyId: strin
             </div>
             <DialogTitle className="mt-4">Your enquiry has been received by Fixora</DialogTitle>
             <DialogDescription>
-              A Fixora representative will review your enquiry and reach out with next steps. You can track it from
+              Our team will review your enquiry and reach out with next steps. You can track it from
               your dashboard.
             </DialogDescription>
             <Button className="mt-6 w-full" onClick={() => setOpen(false)}>
@@ -79,7 +78,7 @@ export function EnquiryDialog({ propertyId, propertyTitle }: { propertyId: strin
           <>
             <DialogTitle>Request information</DialogTitle>
             <DialogDescription>
-              This goes to a Fixora representative — not the seller directly.
+              This goes to the Fixora team — not the seller directly.
             </DialogDescription>
             <div className="mt-4">
               <Label htmlFor="enquiry-message">Your message</Label>

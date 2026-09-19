@@ -2,10 +2,25 @@
 
 ## Overview
 
-Fixora Properties is a commission-based real-estate brokerage platform. Buyers
-and sellers never communicate directly — every enquiry is routed through
-Fixora's authorized representatives (modeled as `BROKER` accounts). See
-[SECURITY.md](./SECURITY.md) for how this is enforced server-side.
+Fixora Properties is a direct property marketplace for buyers and sellers —
+there is no broker role. Sellers list at their own ask price; buyers see that
+price marked up by an admin-configurable platform fee percentage (see
+"Platform fee" below). Buyers and sellers still don't exchange contact
+details directly: every enquiry is routed through the admin team, who review
+and forward it. See [SECURITY.md](./SECURITY.md) for how this is enforced
+server-side.
+
+### Platform fee
+
+`PlatformSettingsModel` (`apps/api/src/modules/settings/`) holds a single
+`platformFeePercent` value, changeable only by `SUPER_ADMIN` (permission
+`SYSTEM_SETTINGS_MANAGE`, `PATCH /settings/platform-fee`). Sellers always see
+and edit their own raw ask price (`SellerPropertyDTO`). Buyer-facing DTOs
+(`PublicPropertyDTO`, from `toPublicPropertyDTO`) mark that price up by the
+current fee percentage — see `apps/api/src/modules/properties/property.dto.ts`.
+Price-range search filters arrive in buyer-facing terms and are converted back
+to the raw ask price before querying MongoDB (`property.service.ts`); sort
+order is unaffected since a fixed percentage markup is monotonic.
 
 ## Monorepo layout
 
@@ -37,8 +52,8 @@ Route → validate(zodSchema) → requireAuth() → requirePermission()/requireO
 - **Controllers** (`*.controller.ts`) parse the already-validated request and
   call services. They contain no business logic and no direct Mongoose calls.
 - **Services** (`*.service.ts`) contain business logic and are the only layer
-  that talks to Mongoose models. This is what makes rules like broker
-  assignment or commission calculation testable in isolation.
+  that talks to Mongoose models. This is what makes rules like the platform
+  fee markup testable in isolation.
 - **DTOs** (`*.dto.ts`) shape what leaves the API for a given role — this is
   where seller contact protection is enforced (see SECURITY.md).
 
@@ -53,16 +68,15 @@ Route → validate(zodSchema) → requireAuth() → requirePermission()/requireO
 | Audit logging infrastructure | ✅ done (auth events wired; more actions wired as those modules land) |
 | Property CRUD + moderation + search | ✅ done (backend) |
 | Shortlists / inquiries | ✅ done (backend) |
-| Leads / broker assignment | ✅ done (backend) |
-| Negotiations / transactions / commissions | 🚧 planned |
+| Leads (admin-managed, no broker role) | ✅ done (backend) |
+| Platform fee settings (admin-configurable) | ✅ done (backend + admin UI) |
 | AI assistant | 🚧 planned (Phase 3 per client roadmap) |
 | WhatsApp handoff | 🚧 planned (Phase 2 per client roadmap) |
 | Public website UI (home, properties list/detail, about, contact, sell) | ✅ done |
 | Auth UI (register with mandatory role select, login, forgot/reset password) | ✅ done |
 | Buyer dashboard (overview, shortlist, enquiries) | ✅ done, minimal |
 | Seller dashboard (property list, create-listing form, submit for review) | ✅ done, minimal |
-| Broker dashboard (assigned leads, status updates) | ✅ done, minimal |
-| Admin dashboard (KPIs, user search + role assignment, property moderation) | ✅ done, minimal |
+| Admin dashboard (KPIs, user search + role assignment, property moderation, platform fee) | ✅ done, minimal |
 | SEO (metadata, OpenGraph, JSON-LD, sitemap, robots) | ✅ done for implemented pages |
 
 "Minimal" above means the core loop works end-to-end against the real API
@@ -109,12 +123,12 @@ product spec for the bar to raise these to before calling Phase 1 done.
   forwards the incoming request's cookies via `next/headers`). Both share parsing/error
   handling from `lib/api-core.ts`. The frontend never reads or stores a JWT itself.
 - **`services/*.service.ts`** wrap the API client per domain (auth, properties, buyer,
-  broker, admin) so components call a typed function, not a raw path string.
+  admin) so components call a typed function, not a raw path string.
 - **Auth state**: `hooks/use-auth.tsx` is a context provider that calls `GET /auth/me` on
   mount and exposes `login`/`register`/`logout`. `components/auth/require-role.tsx` gates
   dashboard routes client-side for UX (avoids flashing a page the user can't use) — this is
   **not** a security boundary; the API re-checks every request regardless (see SECURITY.md).
-- **Route groups not yet split**: `/dashboard` (buyer), `/seller`, `/broker`, `/admin` each
+- **Route groups not yet split**: `/dashboard` (buyer), `/seller`, `/admin` each
   have their own `layout.tsx` wrapping children in `RequireRole`. They currently share the
   root layout's Navbar/Footer; revisit if dashboards want a fully separate chrome later.
 

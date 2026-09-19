@@ -48,23 +48,13 @@ router.get(
 );
 
 router.get(
-  "/assigned",
-  requireAuth(),
-  requireRole("BROKER"),
-  asyncHandler(async (req, res) => {
-    const inquiries = await inquiryService.listAssignedInquiries(req.user!.id);
-    sendSuccess(res, { inquiries: inquiries.map(toInquiryDTO) });
-  })
-);
-
-router.get(
   "/",
   requireAuth(),
   requirePermission("INQUIRIES_VIEW"),
   requireRole("ADMIN", "SUPER_ADMIN"),
   asyncHandler(async (_req, res) => {
-    const inquiries = await inquiryService.listAllInquiries();
-    sendSuccess(res, { inquiries: inquiries.map(toInquiryDTO) });
+    const inquiries = await inquiryService.listAllInquiriesForAdmin();
+    sendSuccess(res, { inquiries });
   })
 );
 

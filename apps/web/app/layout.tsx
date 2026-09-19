@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: { default: "Fixora Properties", template: "%s | Fixora Properties" },
   description:
-    "Fixora Properties connects buyers with verified sellers and builders through a brokerage team that manages every enquiry, negotiation, and transaction.",
+    "Fixora Properties connects property buyers directly with verified sellers and builders — every enquiry is reviewed by our team, with a transparent platform fee shown up front.",
   robots: { index: true, follow: true },
 };
 

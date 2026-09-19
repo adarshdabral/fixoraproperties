@@ -19,7 +19,6 @@ const NAV_LINKS = [
 const DASHBOARD_PATH: Record<string, string> = {
   BUYER: "/dashboard",
   SELLER: "/seller",
-  BROKER: "/broker",
   ADMIN: "/admin",
   SUPER_ADMIN: "/admin",
 };

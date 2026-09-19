@@ -3,7 +3,7 @@ import { ShieldCheck, Users, Handshake } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "Fixora Properties is a brokerage-led platform connecting buyers with verified sellers and builders.",
+  description: "Fixora Properties connects property buyers and sellers directly, with every enquiry reviewed by our team and a transparent platform fee.",
 };
 
 export default function AboutPage() {
@@ -12,22 +12,21 @@ export default function AboutPage() {
       <div className="max-w-2xl">
         <h1 className="font-display text-4xl text-ink">About Fixora Properties</h1>
         <p className="mt-4 text-ink-500">
-          Fixora Properties is a commission-based real-estate brokerage platform. We connect
-          property sellers and builders with buyers, while keeping every conversation, negotiation,
-          and transaction managed by our own team of representatives — never a direct exchange
-          between buyer and seller.
+          Fixora Properties is a direct property marketplace for buyers and sellers. Sellers list
+          at their own ask price, buyers browse and enquire, and every enquiry is reviewed by our
+          team before it's passed along — never bypassed automatically.
         </p>
         <p className="mt-4 text-ink-500">
-          That controlled-communication model exists for a reason: it protects seller privacy,
-          prevents deals from bypassing the brokerage, and lets our representatives actively manage
-          negotiation and coordination from the first enquiry through to closing.
+          Instead of commission negotiated deal-by-deal, Fixora charges a single transparent
+          platform fee, shown to buyers as part of the listed price. Sellers always receive their
+          full ask price.
         </p>
       </div>
 
       <div className="mt-12 grid gap-6 sm:grid-cols-3">
         <Value icon={<ShieldCheck className="h-5 w-5" />} title="Confidentiality" body="Seller contact details are never shared with buyers directly." />
-        <Value icon={<Users className="h-5 w-5" />} title="A dedicated team" body="Every enquiry is assigned to a named Fixora representative." />
-        <Value icon={<Handshake className="h-5 w-5" />} title="Full-service brokerage" body="From search to signing, we coordinate every step of the deal." />
+        <Value icon={<Users className="h-5 w-5" />} title="A dedicated team" body="Every enquiry is reviewed by the Fixora team before it moves forward." />
+        <Value icon={<Handshake className="h-5 w-5" />} title="Transparent pricing" body="One platform fee, shown up front — no hidden commission." />
       </div>
     </div>
   );

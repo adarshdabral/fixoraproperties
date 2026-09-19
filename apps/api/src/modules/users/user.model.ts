@@ -20,22 +20,6 @@ const userSchema = new Schema(
     resetPasswordTokenHash: { type: String, default: null, select: false },
     resetPasswordExpiresAt: { type: Date, default: null, select: false },
 
-    /**
-     * Broker-specific operational fields. Kept on the User document rather
-     * than a separate collection since brokers are a small, low-churn set;
-     * revisit if broker profile data grows significantly.
-     */
-    brokerProfile: {
-      type: new Schema(
-        {
-          title: { type: String, trim: true },
-          active: { type: Boolean, default: true },
-        },
-        { _id: false }
-      ),
-      default: undefined,
-    },
-
     lastLoginAt: { type: Date, default: null },
   },
   { timestamps: true }

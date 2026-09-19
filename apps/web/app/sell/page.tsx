@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Sell or list your property",
-  description: "List your property with Fixora Properties and let our brokerage team manage enquiries and negotiation for you.",
+  description: "List your property with Fixora Properties. You set the ask price, we handle enquiries, and you always receive what you asked for.",
 };
 
 const STEPS = [
-  "Create a seller account and add your property details",
+  "Create a seller account and add your property, at your own ask price",
   "Our team reviews your listing before it goes live",
   "Buyers enquire through Fixora — your contact details stay private",
-  "A Fixora representative manages visits, negotiation, and closing",
+  "Our team reviews and forwards enquiries so you can follow up",
 ];
 
 export default function SellPage() {
@@ -21,8 +21,9 @@ export default function SellPage() {
       <div className="max-w-2xl">
         <h1 className="font-display text-4xl text-ink">List your property with Fixora</h1>
         <p className="mt-4 text-ink-500">
-          Fixora handles enquiries, visits, and negotiation on your behalf — your phone number is
-          never shared with buyers directly.
+          You set the ask price — that&apos;s exactly what you receive. Fixora adds a transparent
+          platform fee on top for buyers, and handles enquiries on your behalf; your phone number
+          is never shared with buyers directly.
         </p>
 
         <ul className="mt-8 space-y-3">

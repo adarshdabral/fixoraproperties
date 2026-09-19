@@ -9,8 +9,8 @@ export function Footer() {
             Fixora <span className="text-gold">Properties</span>
           </p>
           <p className="mt-3 max-w-xs text-sm text-ink-300">
-            A brokerage-led property platform. Every enquiry is handled by a Fixora
-            representative — buyers and sellers never exchange contact details directly.
+            A direct property marketplace for buyers and sellers. Every enquiry is reviewed by
+            our team, and buyers see a transparent platform fee on top of the seller&apos;s price.
           </p>
         </div>
 

@@ -15,8 +15,8 @@ export default function ContactPage() {
         <h1 className="font-display text-4xl text-ink">Contact Fixora</h1>
         <p className="mt-4 text-ink-500">
           Have a question about a specific property? The fastest way to reach us is the{" "}
-          <strong>Request Information</strong> button on that property&apos;s page — it routes
-          directly to the Fixora representative handling that listing.
+          <strong>Request Information</strong> button on that property&apos;s page — our team
+          reviews it and follows up.
         </p>
         <p className="mt-4 text-ink-500">For everything else, reach our team directly:</p>
 

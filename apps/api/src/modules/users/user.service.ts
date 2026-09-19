@@ -18,11 +18,11 @@ export async function searchUsers(filters: { role?: string; search?: string }): 
 
 /**
  * Enforces the admin/super-admin boundary from the product spec: ADMIN
- * holds USERS_MANAGE and can move a user between BUYER/SELLER/BROKER, but
- * only SUPER_ADMIN (via ADMINS_MANAGE) can promote someone to ADMIN/
- * SUPER_ADMIN or change the role of an existing admin/super-admin. Callers
- * only need USERS_MANAGE to reach this function — the finer-grained check
- * happens here so it can't be bypassed by hitting the route directly.
+ * holds USERS_MANAGE and can move a user between BUYER/SELLER, but only
+ * SUPER_ADMIN (via ADMINS_MANAGE) can promote someone to ADMIN/SUPER_ADMIN
+ * or change the role of an existing admin/super-admin. Callers only need
+ * USERS_MANAGE to reach this function — the finer-grained check happens
+ * here so it can't be bypassed by hitting the route directly.
  */
 export async function changeUserRole(
   actorId: string,

@@ -1,8 +1,9 @@
+import type { Types } from "mongoose";
 import { InquiryModel, type InquiryDocument } from "./inquiry.model.js";
 import { PropertyModel } from "../properties/property.model.js";
 import { createLead } from "../leads/lead.service.js";
 import { AppError } from "../../utils/AppError.js";
-import type { LeadSource } from "@fixora/types";
+import type { LeadSource, AdminInquiryDTO } from "@fixora/types";
 
 interface CreateInquiryInput {
   buyerId: string;
@@ -14,9 +15,9 @@ interface CreateInquiryInput {
 
 /**
  * The controlled-communication workflow: an enquiry always creates a Lead
- * (which resolves broker assignment) and stores only the assigned broker's
- * id, never the seller's contact details. See docs/WHATSAPP.md for how this
- * lead later becomes a WhatsApp handoff to the assigned broker.
+ * that the admin team reviews and progresses — buyers and sellers never
+ * exchange contact details directly through this flow. See docs/WHATSAPP.md
+ * for how this lead later becomes a WhatsApp handoff to the seller.
  */
 export async function createInquiry(input: CreateInquiryInput): Promise<InquiryDocument> {
   const property = await PropertyModel.findOne({ _id: input.propertyId, status: "published" });
@@ -35,7 +36,6 @@ export async function createInquiry(input: CreateInquiryInput): Promise<InquiryD
     leadId: lead.id,
     message: input.message,
     requirements: input.requirements ?? {},
-    assignedTo: lead.assignedTo,
     source: lead.source,
     status: lead.status,
   });
@@ -52,10 +52,42 @@ export async function getOwnInquiry(inquiryId: string, buyerId: string): Promise
   return inquiry;
 }
 
-export async function listAssignedInquiries(brokerId: string): Promise<InquiryDocument[]> {
-  return InquiryModel.find({ assignedTo: brokerId }).sort({ createdAt: -1 });
-}
+/**
+ * Admin-facing view: unlike the buyer's own /inquiries/mine (which never
+ * needs a buyerId — it's implicitly "me"), the admin team needs to know
+ * exactly who sent an enquiry and for which property to review and follow
+ * up on it, so this populates both. Contact fields go out only here — to
+ * staff, never to another buyer or the seller.
+ */
+export async function listAllInquiriesForAdmin(): Promise<AdminInquiryDTO[]> {
+  const rows = await InquiryModel.find({})
+    .sort({ createdAt: -1 })
+    .limit(500)
+    .populate("buyerId", "name email phone")
+    .populate("propertyId", "title slug")
+    .lean<
+      Array<{
+        _id: Types.ObjectId;
+        buyerId: { _id: Types.ObjectId; name: string; email: string; phone: string } | null;
+        propertyId: { _id: Types.ObjectId; title: string; slug: string } | null;
+        message: string;
+        status: string;
+        source: string;
+        createdAt: Date;
+      }>
+    >();
 
-export async function listAllInquiries(): Promise<InquiryDocument[]> {
-  return InquiryModel.find({}).sort({ createdAt: -1 }).limit(500);
+  return rows.map((row) => ({
+    id: row._id.toString(),
+    buyer: row.buyerId
+      ? { id: row.buyerId._id.toString(), name: row.buyerId.name, email: row.buyerId.email, phone: row.buyerId.phone }
+      : null,
+    property: row.propertyId
+      ? { id: row.propertyId._id.toString(), title: row.propertyId.title, slug: row.propertyId.slug }
+      : null,
+    message: row.message,
+    status: row.status,
+    source: row.source,
+    createdAt: row.createdAt.toISOString(),
+  }));
 }

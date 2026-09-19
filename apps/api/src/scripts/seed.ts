@@ -17,27 +17,12 @@ interface SeedUser {
   name: string;
   email: string;
   phone: string;
-  role: "SUPER_ADMIN" | "ADMIN" | "BROKER" | "SELLER" | "BUYER";
-  brokerProfile?: { title: string; active: boolean };
+  role: "SUPER_ADMIN" | "ADMIN" | "SELLER" | "BUYER";
 }
 
 const SEED_USERS: SeedUser[] = [
   { name: "Fixora Super Admin", email: "superadmin@fixora.dev", phone: "9000000001", role: "SUPER_ADMIN" },
   { name: "Fixora Admin", email: "admin@fixora.dev", phone: "9000000002", role: "ADMIN" },
-  {
-    name: "Vansh Kakkar",
-    email: "vansh.kakkar@fixora.dev",
-    phone: "9000000003",
-    role: "BROKER",
-    brokerProfile: { title: "Fixora Representative", active: true },
-  },
-  {
-    name: "Dr. Neeraj Sengar",
-    email: "neeraj.sengar@fixora.dev",
-    phone: "9000000004",
-    role: "BROKER",
-    brokerProfile: { title: "Fixora Representative", active: true },
-  },
   { name: "Demo Seller", email: "seller@fixora.dev", phone: "9000000005", role: "SELLER" },
   { name: "Demo Buyer", email: "buyer@fixora.dev", phone: "9000000006", role: "BUYER" },
 ];
@@ -56,7 +41,6 @@ async function seedUsers() {
           phone: u.phone,
           passwordHash,
           role: u.role,
-          brokerProfile: u.brokerProfile,
         },
       },
       { upsert: true, new: true }

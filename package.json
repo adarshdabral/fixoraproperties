@@ -2,7 +2,7 @@
   "name": "fixora-properties",
   "private": true,
   "version": "0.1.0",
-  "description": "Fixora Properties - commission-based real-estate brokerage platform",
+  "description": "Fixora Properties - direct property marketplace for buyers and sellers, with a platform-fee pricing model",
   "workspaces": [
     "apps/*",
     "packages/*"

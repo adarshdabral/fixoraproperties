@@ -128,7 +128,7 @@ export default async function PropertyDetailPage({ params }: Props) {
           <div className="rounded-xl2 border border-line bg-white p-6 shadow-card">
             <p className="font-display text-3xl text-ink">{formatPriceINR(property.price.amount)}</p>
             <p className="mt-1 text-sm text-ink-300">
-              {property.price.negotiable ? "Price is negotiable" : "Fixed price"}
+              {property.price.negotiable ? "Price is negotiable" : "Fixed price"} · includes platform fee
             </p>
 
             <div className="mt-6">
@@ -136,7 +136,7 @@ export default async function PropertyDetailPage({ params }: Props) {
             </div>
 
             <p className="mt-4 text-center text-xs text-ink-300">
-              Your enquiry is handled by a Fixora representative. We never share seller contact
+              Your enquiry is reviewed by the Fixora team. We never share seller contact
               details directly.
             </p>
           </div>

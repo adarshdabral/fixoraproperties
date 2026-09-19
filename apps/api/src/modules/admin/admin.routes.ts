@@ -6,24 +6,24 @@ import { sendSuccess } from "../../utils/apiResponse.js";
 import { UserModel } from "../users/user.model.js";
 import { PropertyModel } from "../properties/property.model.js";
 import { LeadModel } from "../leads/lead.model.js";
+import { InquiryModel } from "../inquiries/inquiry.model.js";
 
 const router = Router();
 
 /**
  * Real aggregate counts from the database — never hardcoded placeholder
- * numbers (product spec §21). Negotiation/transaction/commission counts
- * are 0 until those modules land; the shape is stable so the admin UI
- * doesn't need to change when they do.
+ * numbers (product spec §21).
  */
 router.get(
   "/dashboard",
   requireAuth(),
   requirePermission("ANALYTICS_VIEW"),
   asyncHandler(async (_req, res) => {
-    const [usersByRole, propertiesByStatus, leadsByStatus] = await Promise.all([
+    const [usersByRole, propertiesByStatus, leadsByStatus, totalInquiries] = await Promise.all([
       UserModel.aggregate<{ _id: string; count: number }>([{ $group: { _id: "$role", count: { $sum: 1 } } }]),
       PropertyModel.aggregate<{ _id: string; count: number }>([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       LeadModel.aggregate<{ _id: string; count: number }>([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
+      InquiryModel.countDocuments(),
     ]);
 
     const countOf = (rows: { _id: string; count: number }[], key: string) =>
@@ -34,7 +34,6 @@ router.get(
         total: usersByRole.reduce((sum, r) => sum + r.count, 0),
         buyers: countOf(usersByRole, "BUYER"),
         sellers: countOf(usersByRole, "SELLER"),
-        brokers: countOf(usersByRole, "BROKER"),
       },
       properties: {
         active: countOf(propertiesByStatus, "published"),
@@ -48,9 +47,7 @@ router.get(
         negotiation: countOf(leadsByStatus, "negotiation"),
         converted: countOf(leadsByStatus, "converted"),
       },
-      // Populated once the negotiations/transactions/commissions modules land.
-      transactions: { completed: 0 },
-      commissions: { total: 0 },
+      inquiries: { total: totalInquiries },
     });
   })
 );

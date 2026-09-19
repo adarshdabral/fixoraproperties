@@ -16,7 +16,7 @@ export function toPublicUserDTO(user: UserDocument): PublicUserDTO {
   };
 }
 
-/** Returned to the user about themself, or to admins/brokers who need contact info. */
+/** Returned to the user about themself, or to admin staff who need contact info. */
 export function toPrivateUserDTO(user: UserDocument): PrivateUserDTO {
   return {
     ...toPublicUserDTO(user),

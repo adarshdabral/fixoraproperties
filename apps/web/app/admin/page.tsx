@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getDashboard } from "@/services/admin.service";
 import { StatCard } from "@/components/ui/stat-card";
@@ -17,11 +18,10 @@ export default function AdminOverviewPage() {
 
       <div className="mt-6">
         <p className="text-sm font-medium text-ink-500">Users</p>
-        <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3">
           <StatCard label="Total users" value={data.users.total} />
           <StatCard label="Buyers" value={data.users.buyers} />
           <StatCard label="Sellers" value={data.users.sellers} />
-          <StatCard label="Brokers" value={data.users.brokers} />
         </div>
       </div>
 
@@ -42,6 +42,18 @@ export default function AdminOverviewPage() {
           <StatCard label="Qualified" value={data.leads.qualified} />
           <StatCard label="Negotiation" value={data.leads.negotiation} />
           <StatCard label="Converted" value={data.leads.converted} />
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-ink-500">Enquiries</p>
+          <Link href="/admin/inquiries" className="text-sm font-medium text-ink hover:text-gold-600">
+            View all →
+          </Link>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <StatCard label="Total received" value={data.inquiries.total} />
         </div>
       </div>
     </div>
