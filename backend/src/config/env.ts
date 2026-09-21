@@ -37,7 +37,18 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   SENTRY_DSN: z.string().optional(),
 
-  WEB_APP_URL: z.string().default("http://localhost:3000"),
+  /**
+   * A trailing slash here breaks CORS silently: the `cors` package does an
+   * exact string match against the browser's `Origin` header, which never
+   * has a trailing slash, so `https://x.com/` would reject every request
+   * from `https://x.com`. Stripped here once so every consumer (CORS
+   * origin check, password-reset link building) gets a clean value
+   * regardless of how it's set in the platform's env var UI.
+   */
+  WEB_APP_URL: z
+    .string()
+    .default("http://localhost:3000")
+    .transform((url) => url.replace(/\/+$/, "")),
 });
 
 function loadEnv() {
