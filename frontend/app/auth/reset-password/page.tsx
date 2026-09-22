@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/shared/validation";
 import { AuthShell, FieldError } from "@/components/auth/auth-shell";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
 import { resetPassword } from "@/services/auth.service";
 import { ApiError } from "@/lib/api";
@@ -76,9 +76,8 @@ function ResetPasswordForm() {
         <input type="hidden" {...register("token")} />
         <div>
           <Label htmlFor="password">New password</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             className="mt-1.5"
             autoComplete="new-password"
             {...register("password")}

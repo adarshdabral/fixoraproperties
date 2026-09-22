@@ -9,6 +9,7 @@ import { loginSchema, type LoginInput } from "@/lib/shared/validation";
 import { AuthShell, FieldError } from "@/components/auth/auth-shell";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/components/ui/toast";
@@ -79,9 +80,8 @@ function LoginForm() {
               Forgot password?
             </Link>
           </div>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             className="mt-1.5"
             autoComplete="current-password"
             {...register("password")}
