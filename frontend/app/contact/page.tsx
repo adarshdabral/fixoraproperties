@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { Mail, MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Get in touch with Fixora Properties.",
+  description: "Get in touch with Fixora Properties by phone, WhatsApp, or email.",
 };
 
 export default function ContactPage() {
@@ -20,17 +21,54 @@ export default function ContactPage() {
         </p>
         <p className="mt-4 text-ink-500">For everything else, reach our team directly:</p>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button asChild variant="outline">
-            <a href="mailto:hello@fixora.dev">
-              <Mail className="mr-2 h-4 w-4" /> hello@fixora.dev
-            </a>
-          </Button>
-          <Button asChild variant="gold">
-            <Link href="/properties">Browse properties</Link>
-          </Button>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          {CONTACT_PHONE && (
+            <>
+              <ContactTile href={CONTACT_PHONE.tel} icon={<Phone className="h-5 w-5" />} label="Call us" value={CONTACT_PHONE.display} />
+              <ContactTile
+                href={CONTACT_PHONE.whatsapp}
+                external
+                icon={<MessageCircle className="h-5 w-5" />}
+                label="WhatsApp"
+                value={CONTACT_PHONE.display}
+              />
+            </>
+          )}
+          <ContactTile href={`mailto:${CONTACT_EMAIL}`} icon={<Mail className="h-5 w-5" />} label="Email" value={CONTACT_EMAIL} />
         </div>
+
+        <Button asChild variant="gold" className="mt-8">
+          <Link href="/properties">Browse properties</Link>
+        </Button>
       </div>
     </div>
+  );
+}
+
+function ContactTile({
+  href,
+  icon,
+  label,
+  value,
+  external = false,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  external?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      className="flex items-center gap-4 rounded-xl2 border border-line bg-white p-5 transition-colors hover:border-gold"
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-100 text-gold-600">{icon}</span>
+      <span>
+        <span className="block text-xs text-ink-300">{label}</span>
+        <span className="block font-medium text-ink">{value}</span>
+      </span>
+    </a>
   );
 }

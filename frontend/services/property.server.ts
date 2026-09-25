@@ -17,3 +17,7 @@ export function getPropertyBySlug(slug: string) {
 export function getFeaturedProperties(limit = 6) {
   return serverApi.get<PaginatedResult<PublicPropertyDTO>>("/properties", { featured: true, limit });
 }
+
+export function getPublicSettings() {
+  return serverApi.get<{ platformFeePercent: number }>("/settings/public");
+}

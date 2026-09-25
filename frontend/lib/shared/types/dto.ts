@@ -43,6 +43,7 @@ export interface PropertySpecificationsDTO {
 
 export interface PropertyMediaDTO {
   url: string;
+  publicId: string;
   type: string;
   alt: string;
   order: number;

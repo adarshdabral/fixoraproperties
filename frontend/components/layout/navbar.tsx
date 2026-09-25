@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, Phone, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CONTACT_PHONE } from "@/lib/site";
 
 const NAV_LINKS = [
   { href: "/properties", label: "Properties" },
@@ -60,6 +61,15 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          {CONTACT_PHONE && (
+            <a
+              href={CONTACT_PHONE.tel}
+              className="mr-1 hidden items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-ink lg:flex"
+            >
+              <Phone className="h-4 w-4 text-gold-600" />
+              {CONTACT_PHONE.display}
+            </a>
+          )}
           {isLoading ? null : user ? (
             <>
               <Button asChild variant="ghost" size="sm">
@@ -111,6 +121,15 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              {CONTACT_PHONE && (
+                <a
+                  href={CONTACT_PHONE.tel}
+                  className="flex items-center gap-2 rounded-md px-2 py-2.5 text-sm font-medium text-ink-500 hover:bg-ink/5 hover:text-ink"
+                >
+                  <Phone className="h-4 w-4 text-gold-600" />
+                  Call {CONTACT_PHONE.display}
+                </a>
+              )}
               <div className="mt-2 flex flex-col gap-2 border-t border-line pt-4">
                 {user ? (
                   <>

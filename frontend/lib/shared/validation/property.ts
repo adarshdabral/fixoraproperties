@@ -38,6 +38,22 @@ export const propertySpecificationsSchema = z.object({
   totalFloors: z.number().int().min(0).max(200).optional(),
 });
 
+/**
+ * Images are uploaded by the browser straight to Cloudinary; only the
+ * resulting URL/publicId pairs are sent here. The backend additionally
+ * checks they belong to Fixora's own cloud and folder (media.service.ts).
+ */
+export const propertyMediaSchema = z.object({
+  url: z.string().url().startsWith("https://res.cloudinary.com/"),
+  publicId: z.string().min(1).max(300),
+  type: z.literal("image").default("image"),
+  alt: z.string().trim().max(150).default(""),
+  order: z.number().int().min(0).max(100).default(0),
+});
+export type PropertyMediaInput = z.infer<typeof propertyMediaSchema>;
+
+export const MAX_PROPERTY_IMAGES = 20;
+
 export const createPropertySchema = z.object({
   title: z.string().trim().min(5).max(150),
   description: z.string().trim().min(20).max(5000),
@@ -48,6 +64,7 @@ export const createPropertySchema = z.object({
   price: propertyPriceSchema,
   specifications: propertySpecificationsSchema,
   amenities: z.array(z.string().trim().max(50)).max(50).default([]),
+  media: z.array(propertyMediaSchema).max(MAX_PROPERTY_IMAGES, `Up to ${MAX_PROPERTY_IMAGES} images`).default([]),
   constructionStatus: enumOf(CONSTRUCTION_STATUSES as unknown as [string, ...string[]]),
   possessionStatus: enumOf(POSSESSION_STATUSES as unknown as [string, ...string[]]),
 });

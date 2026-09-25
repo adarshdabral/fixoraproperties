@@ -32,7 +32,7 @@ export function HeroSearch() {
         <Input
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          placeholder="City — e.g. Chandigarh, Mumbai"
+          placeholder="Which city?"
           className="border-none px-0 shadow-none focus-visible:ring-0"
           aria-label="City"
         />
@@ -41,7 +41,7 @@ export function HeroSearch() {
       <div className="h-px w-full bg-line sm:h-9 sm:w-px" />
 
       <Select value={category} onValueChange={setCategory}>
-        <SelectTrigger className="h-11 border-none sm:w-48" aria-label="Property category">
+        <SelectTrigger className="h-11 border-none sm:w-40" aria-label="Property category">
           <SelectValue placeholder="Any category" />
         </SelectTrigger>
         <SelectContent>

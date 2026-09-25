@@ -42,6 +42,15 @@ const config: Config = {
       maxWidth: {
         content: "1200px",
       },
+      keyframes: {
+        "hero-in": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "hero-in": "hero-in 0.6s ease-out both",
+      },
     },
   },
   plugins: [],

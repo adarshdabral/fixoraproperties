@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Ruler, Car, Building, MapPin, CalendarClock } from "lucide-react";
+import { BedDouble, Bath, Ruler, Car, Building, MapPin, CalendarClock, Phone, MessageCircle } from "lucide-react";
 import { PropertyGallery } from "@/components/property/property-gallery";
 import { EnquiryDialog } from "@/components/property/enquiry-dialog";
 import { ShortlistButton } from "@/components/property/shortlist-button";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { getPropertyBySlug } from "@/services/property.server";
 import { ApiError } from "@/lib/api-core";
 import { formatPriceINR, formatArea, categoryLabel, titleCase } from "@/lib/utils";
+import { CONTACT_PHONE } from "@/lib/site";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -140,6 +141,30 @@ export default async function PropertyDetailPage({ params }: Props) {
               details directly.
             </p>
           </div>
+
+          {CONTACT_PHONE && (
+            <div className="mt-4 rounded-xl2 border border-line bg-white p-5">
+              <p className="text-sm font-medium text-ink">Prefer to talk it through?</p>
+              <p className="mt-0.5 text-xs text-ink-300">Call the Fixora team about this property.</p>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <a
+                  href={CONTACT_PHONE.tel}
+                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-ink/20 text-sm font-medium text-ink hover:bg-ink/5"
+                >
+                  <Phone className="h-4 w-4" /> Call
+                </a>
+                <a
+                  href={`${CONTACT_PHONE.whatsapp}?text=${encodeURIComponent(`Hi Fixora, I'm interested in "${property.title}"`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-sage text-sm font-medium text-white hover:bg-sage/90"
+                >
+                  <MessageCircle className="h-4 w-4" /> WhatsApp
+                </a>
+              </div>
+              <p className="mt-3 text-center text-xs text-ink-300">{CONTACT_PHONE.display}</p>
+            </div>
+          )}
         </aside>
       </div>
     </div>

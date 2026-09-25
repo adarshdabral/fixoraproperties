@@ -49,6 +49,10 @@ the new role or the target's current role — requires `ADMINS_MANAGE`
 can't be bypassed. Self-role-change is blocked outright (400) to avoid
 accidental lockout. Records a `ROLE_CHANGED` audit entry with `{ from, to }`.
 
+### `GET /settings/public` (public)
+`{ platformFeePercent }` — used by the home page to show how a listed price
+splits into seller's ask + fee.
+
 ### `GET /settings/platform-fee` / `PATCH /settings/platform-fee` (permission: `SYSTEM_SETTINGS_MANAGE` — SUPER_ADMIN only)
 Body for `PATCH`: `{ platformFeePercent }` (0–100). This is the percentage
 added to a seller's ask price wherever a buyer sees it (see
@@ -88,7 +92,17 @@ property is invisible to the public even if you know its slug.
 
 ### `POST /properties` (permission: `PROPERTIES_CREATE` — SELLER)
 Creates a `status: "draft"` property owned by `req.user.id` (never a
-client-supplied `sellerId`).
+client-supplied `sellerId`). Optional `media: [{ url, publicId, alt?, order? }]`
+(max 20) — each item must be an image already uploaded via
+`POST /media/signature` into Fixora's own Cloudinary cloud and
+`fixora/properties` folder, or the request is rejected with `400`. The same
+check applies to `media` on `PATCH /properties/:id`.
+
+### `POST /media/signature` (permission: `PROPERTIES_CREATE`)
+Returns `{ cloudName, apiKey, timestamp, signature, folder, allowedFormats }`
+for a signed browser-to-Cloudinary image upload (valid for one hour; pinned
+to the `fixora/properties` folder and jpg/png/webp/avif). File bytes never
+pass through this API. `503` when the `CLOUDINARY_*` env vars are unset.
 
 ### `GET /properties/mine` (role: SELLER)
 The caller's own properties in every status, `SellerPropertyDTO[]`.
@@ -171,7 +185,6 @@ contact field anywhere in any response along the way.
 /notifications    In-app notification feed
 /analytics        Admin/seller-facing aggregates
 /admin            Cross-cutting admin operations not owned by a single module
-/uploads          Cloudinary/S3-backed property media upload
 ```
 
 Each will get its own section here (request/response shape, required

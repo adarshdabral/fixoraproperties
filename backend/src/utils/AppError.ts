@@ -29,6 +29,9 @@ export class AppError extends Error {
   static tooManyRequests(message = "Too many requests, please try again later") {
     return new AppError(429, "TOO_MANY_REQUESTS", message);
   }
+  static serviceUnavailable(message = "This feature is not available right now") {
+    return new AppError(503, "SERVICE_UNAVAILABLE", message);
+  }
   static internal(message = "Something went wrong") {
     return new AppError(500, "INTERNAL_ERROR", message);
   }

@@ -11,6 +11,20 @@ const router = Router();
 
 const platformFeeSchema = z.object({ platformFeePercent: z.number().min(0).max(100) });
 
+/**
+ * Public read of the fee percentage. Buyers already see fee-inclusive prices
+ * and the product promises the fee is shown up front, so the percentage
+ * itself isn't sensitive — the home page uses it to break a listed price
+ * into seller's ask + fee.
+ */
+router.get(
+  "/public",
+  asyncHandler(async (_req, res) => {
+    const platformFeePercent = await settingsService.getPlatformFeePercent();
+    sendSuccess(res, { platformFeePercent });
+  })
+);
+
 router.get(
   "/platform-fee",
   requireAuth(),

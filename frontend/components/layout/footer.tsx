@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Mail, Phone } from "lucide-react";
+import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/site";
 
 export function Footer() {
   return (
@@ -12,6 +14,16 @@ export function Footer() {
             A direct property marketplace for buyers and sellers. Every enquiry is reviewed by
             our team, and buyers see a transparent platform fee on top of the seller&apos;s price.
           </p>
+          <div className="mt-5 space-y-2 text-sm">
+            {CONTACT_PHONE && (
+              <a href={CONTACT_PHONE.tel} className="flex items-center gap-2 font-medium text-ink hover:text-gold-600">
+                <Phone className="h-4 w-4 text-gold-600" /> {CONTACT_PHONE.display}
+              </a>
+            )}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="flex items-center gap-2 text-ink-500 hover:text-ink">
+              <Mail className="h-4 w-4 text-gold-600" /> {CONTACT_EMAIL}
+            </a>
+          </div>
         </div>
 
         <FooterColumn

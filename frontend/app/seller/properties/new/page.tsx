@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FieldError } from "@/components/auth/auth-shell";
+import { ImageUploader } from "@/components/property/image-uploader";
 import { createProperty } from "@/services/property.service";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api";
@@ -25,6 +27,7 @@ import { categoryLabel, titleCase } from "@/lib/utils";
 export default function NewPropertyPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [imagesUploading, setImagesUploading] = useState(false);
 
   const {
     register,
@@ -35,6 +38,7 @@ export default function NewPropertyPage() {
     resolver: zodResolver(createPropertySchema),
     defaultValues: {
       amenities: [],
+      media: [],
       price: { currency: "INR", negotiable: false, amount: 0 },
       specifications: { areaUnit: "sqft", area: 0 },
     },
@@ -128,6 +132,23 @@ export default function NewPropertyPage() {
             />
             <FieldError message={errors.listingType?.message} />
           </div>
+        </section>
+
+        <section className="space-y-4 rounded-xl2 border border-line bg-white p-5">
+          <div>
+            <p className="text-sm font-medium text-ink-500">Photos</p>
+            <p className="mt-0.5 text-xs text-ink-300">
+              Listings with clear photos get far more enquiries. The first photo is the cover shown in search results.
+            </p>
+          </div>
+          <Controller
+            name="media"
+            control={control}
+            render={({ field }) => (
+              <ImageUploader value={field.value ?? []} onChange={field.onChange} onUploadingChange={setImagesUploading} />
+            )}
+          />
+          <FieldError message={errors.media?.message ?? errors.media?.root?.message} />
         </section>
 
         <section className="space-y-4 rounded-xl2 border border-line bg-white p-5">
@@ -262,8 +283,8 @@ export default function NewPropertyPage() {
           </div>
         </section>
 
-        <Button type="submit" size="lg" disabled={isSubmitting}>
-          {isSubmitting ? "Creating draft…" : "Create draft"}
+        <Button type="submit" size="lg" disabled={isSubmitting || imagesUploading}>
+          {imagesUploading ? "Waiting for photos to upload…" : isSubmitting ? "Creating draft…" : "Create draft"}
         </Button>
       </form>
     </div>

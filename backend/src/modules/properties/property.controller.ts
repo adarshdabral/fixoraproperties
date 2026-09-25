@@ -6,6 +6,7 @@ import * as propertyService from "./property.service.js";
 import { toPublicPropertyDTO, toSellerPropertyDTO } from "./property.dto.js";
 import { recordAudit } from "../audit/audit.service.js";
 import { getPlatformFeePercent } from "../settings/settings.service.js";
+import { assertPropertyMedia } from "../media/media.service.js";
 import type { CreatePropertyInput, UpdatePropertyInput, PropertySearchInput } from "../../shared/validation/index.js";
 
 export const search = asyncHandler(async (req: Request, res: Response) => {
@@ -25,6 +26,7 @@ export const getBySlug = asyncHandler(async (req: Request, res: Response) => {
 
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const input = req.body as CreatePropertyInput;
+  assertPropertyMedia(input.media);
   const property = await propertyService.createDraft(req.user!.id, input);
   sendCreated(res, { property: toSellerPropertyDTO(property) }, "Draft property created");
 });
@@ -44,6 +46,7 @@ export const getOwnedOrModerated = asyncHandler(async (req: Request, res: Respon
 
 export const update = asyncHandler(async (req: Request, res: Response) => {
   const input = req.body as UpdatePropertyInput;
+  assertPropertyMedia(input.media);
   const isStaff = ["ADMIN", "SUPER_ADMIN"].includes(req.user!.role);
 
   const updated = isStaff

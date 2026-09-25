@@ -56,7 +56,7 @@ function baseFields(property: PropertyDocument): BaseFields {
       totalFloors: n(specifications.totalFloors),
     },
     amenities: property.amenities ?? [],
-    media: (property.media ?? []).map((m) => ({ url: m.url, type: m.type, alt: m.alt ?? "", order: m.order ?? 0 })),
+    media: (property.media ?? []).map((m) => ({ url: m.url, publicId: m.publicId, type: m.type, alt: m.alt ?? "", order: m.order ?? 0 })),
     constructionStatus: property.constructionStatus,
     possessionStatus: property.possessionStatus,
     featured: property.featured ?? false,
