@@ -52,20 +52,20 @@ async function seedUsers() {
 }
 
 async function seedDemoProperty(sellerId: string) {
-  const existing = await PropertyModel.findOne({ title: "Demo Published 3BHK in Chandigarh" });
+  const existing = await PropertyModel.findOne({ title: "Demo Published 3BHK in Dehradun" });
   if (existing) return;
 
-  const slug = await generateUniqueSlug("Demo Published 3BHK in Chandigarh");
+  const slug = await generateUniqueSlug("Demo Published 3BHK in Dehradun");
   await PropertyModel.create({
     sellerId,
-    title: "Demo Published 3BHK in Chandigarh",
+    title: "Demo Published 3BHK in Dehradun",
     slug,
     description:
       "A seeded, published demo listing so the public search and property pages have real data to render in development.",
     propertyType: "apartment",
     category: "apartments",
     listingType: "sale",
-    location: { address: "Sector 22", city: "Chandigarh", state: "Chandigarh", pincode: "160022" },
+    location: { address: "Sector 22", city: "Dehradun", state: "Dehradun", pincode: "160022" },
     price: { amount: 8000000, currency: "INR", negotiable: true },
     specifications: { bedrooms: 3, bathrooms: 2, area: 1450, areaUnit: "sqft", parking: 1 },
     amenities: ["parking", "lift", "power backup"],

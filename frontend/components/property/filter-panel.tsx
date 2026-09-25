@@ -45,7 +45,7 @@ export function FilterPanel() {
     <div className="space-y-5">
       <div>
         <Label htmlFor="city">City</Label>
-        <Input id="city" className="mt-1.5" value={draft.city ?? ""} onChange={(e) => setField("city", e.target.value)} placeholder="e.g. Chandigarh" />
+        <Input id="city" className="mt-1.5" value={draft.city ?? ""} onChange={(e) => setField("city", e.target.value)} placeholder="e.g. Dehradun" />
       </div>
 
       <div>
