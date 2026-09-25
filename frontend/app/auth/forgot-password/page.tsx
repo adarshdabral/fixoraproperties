@@ -10,9 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { forgotPassword } from "@/services/auth.service";
+import { ApiError } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -21,8 +23,13 @@ export default function ForgotPasswordPage() {
   } = useForm<ForgotPasswordInput>({ resolver: zodResolver(forgotPasswordSchema) });
 
   const onSubmit = async (data: ForgotPasswordInput) => {
-    await forgotPassword(data);
-    setSent(true);
+    setServerError(null);
+    try {
+      await forgotPassword(data);
+      setSent(true);
+    } catch (err) {
+      setServerError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -46,6 +53,11 @@ export default function ForgotPasswordPage() {
             <Input id="email" type="email" className="mt-1.5" autoComplete="email" {...register("email")} aria-invalid={Boolean(errors.email)} />
             <FieldError message={errors.email?.message} />
           </div>
+          {serverError && (
+            <p className="text-sm text-red-600" role="alert">
+              {serverError}
+            </p>
+          )}
           <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Sending…" : "Send reset link"}
           </Button>

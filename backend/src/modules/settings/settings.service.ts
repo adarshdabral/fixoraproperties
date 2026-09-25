@@ -27,7 +27,6 @@ export async function setPlatformFeePercent(
   await recordAudit({
     req,
     actorId,
-    actorRole: "SUPER_ADMIN",
     action: "PLATFORM_FEE_UPDATED",
     resourceType: "PlatformSettings",
     resourceId: doc.id,

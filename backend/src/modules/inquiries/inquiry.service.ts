@@ -68,6 +68,7 @@ export async function listAllInquiriesForAdmin(): Promise<AdminInquiryDTO[]> {
     .lean<
       Array<{
         _id: Types.ObjectId;
+        leadId: Types.ObjectId;
         buyerId: { _id: Types.ObjectId; name: string; email: string; phone: string } | null;
         propertyId: { _id: Types.ObjectId; title: string; slug: string } | null;
         message: string;
@@ -79,6 +80,7 @@ export async function listAllInquiriesForAdmin(): Promise<AdminInquiryDTO[]> {
 
   return rows.map((row) => ({
     id: row._id.toString(),
+    leadId: row.leadId.toString(),
     buyer: row.buyerId
       ? { id: row.buyerId._id.toString(), name: row.buyerId.name, email: row.buyerId.email, phone: row.buyerId.phone }
       : null,

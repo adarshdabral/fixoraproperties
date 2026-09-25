@@ -11,15 +11,17 @@ import { categoryLabel } from "@/lib/utils";
 
 export function HeroSearch() {
   const router = useRouter();
-  const [city, setCity] = useState("");
+  const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (city.trim()) params.set("city", city.trim());
+    // Fixora lists in Dehradun only, so the home search is always scoped to it.
+    params.set("city", "Dehradun");
+    if (query.trim()) params.set("q", query.trim());
     if (category) params.set("category", category);
-    router.push(`/properties${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(`/properties?${params.toString()}`);
   };
 
   return (
@@ -30,11 +32,11 @@ export function HeroSearch() {
       <div className="flex flex-1 items-center gap-2 px-2">
         <Search className="h-5 w-5 shrink-0 text-ink-300" />
         <Input
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="Which city?"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search a locality"
           className="border-none px-0 shadow-none focus-visible:ring-0"
-          aria-label="City"
+          aria-label="Locality or keyword"
         />
       </div>
 

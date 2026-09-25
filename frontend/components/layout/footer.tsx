@@ -11,8 +11,8 @@ export function Footer() {
             Fixora <span className="text-gold">Properties</span>
           </p>
           <p className="mt-3 max-w-xs text-sm text-ink-300">
-            A direct property marketplace for buyers and sellers. Every enquiry is reviewed by
-            our team, and buyers see a transparent platform fee on top of the seller&apos;s price.
+            Homes, plots and commercial property in Dehradun, listed by owners and checked by our
+            team. Every enquiry is handled by Fixora.
           </p>
           <div className="mt-5 space-y-2 text-sm">
             {CONTACT_PHONE && (

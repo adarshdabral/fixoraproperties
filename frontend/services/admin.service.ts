@@ -2,7 +2,7 @@
 
 import { api } from "@/lib/api";
 import type { PrivateUserDTO, AdminDashboardDTO, SellerPropertyDTO, AdminInquiryDTO } from "@/lib/shared/types";
-import type { Role } from "@/lib/shared/types";
+import type { Role, LeadStatus } from "@/lib/shared/types";
 
 export function searchUsers(search: string, role?: string) {
   return api.get<{ users: PrivateUserDTO[] }>("/users", { search: search || undefined, role: role || undefined });
@@ -34,6 +34,10 @@ export function rejectProperty(id: string, reason: string) {
 
 export function listInquiries() {
   return api.get<{ inquiries: AdminInquiryDTO[] }>("/inquiries");
+}
+
+export function updateLeadStatus(leadId: string, status: LeadStatus) {
+  return api.patch<unknown>(`/leads/${leadId}/status`, { status });
 }
 
 export function getPlatformFee() {

@@ -90,6 +90,7 @@ export interface InquiryDTO {
 /** Admin-only view of an enquiry — includes who sent it and for which property, unlike InquiryDTO. */
 export interface AdminInquiryDTO {
   id: string;
+  leadId: string;
   buyer: { id: string; name: string; email: string; phone: string } | null;
   property: { id: string; title: string; slug: string } | null;
   message: string;

@@ -76,15 +76,14 @@ export const approve = asyncHandler(async (req: Request, res: Response) => {
 
 export const reject = asyncHandler(async (req: Request, res: Response) => {
   const { reason } = req.body as { reason: string };
-  if (!reason?.trim()) throw AppError.badRequest("A rejection reason is required");
-  const property = await propertyService.rejectProperty(req.params.id as string, reason.trim());
+  const property = await propertyService.rejectProperty(req.params.id as string, reason);
   await recordAudit({ req, action: "PROPERTY_REJECTED", resourceType: "Property", resourceId: property.id, metadata: { reason } });
   sendSuccess(res, { property: toSellerPropertyDTO(property) }, "Property rejected");
 });
 
 export const feature = asyncHandler(async (req: Request, res: Response) => {
   const { featured } = req.body as { featured: boolean };
-  const property = await propertyService.setFeatured(req.params.id as string, Boolean(featured));
+  const property = await propertyService.setFeatured(req.params.id as string, featured);
   await recordAudit({ req, action: "PROPERTY_UPDATED", resourceType: "Property", resourceId: property.id, metadata: { featured } });
   sendSuccess(res, { property: toSellerPropertyDTO(property) });
 });
@@ -103,7 +102,7 @@ export const setStatus = asyncHandler(async (req: Request, res: Response) => {
   if (!isStaff && status === "published") {
     throw AppError.forbidden("Only staff can publish a listing — submit it for review instead");
   }
-  const property = await propertyService.setLifecycleStatus(req.params.id as string, status);
+  const property = await propertyService.setLifecycleStatus(req.params.id as string, status, isStaff);
   await recordAudit({ req, action: "PROPERTY_UPDATED", resourceType: "Property", resourceId: property.id, metadata: { status } });
   sendSuccess(res, { property: toSellerPropertyDTO(property) });
 });

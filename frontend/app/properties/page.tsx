@@ -5,6 +5,7 @@ import { PropertyCard } from "@/components/property/property-card";
 import { Pagination } from "@/components/ui/pagination";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { searchProperties } from "@/services/property.server";
+import { ApiError } from "@/lib/api-core";
 
 export const metadata: Metadata = {
   title: "Properties",
@@ -17,11 +18,15 @@ export default async function PropertiesPage({ searchParams }: { searchParams: P
   const params = await searchParams;
 
   let result;
-  let loadError = false;
+  let loadError: string | null = null;
   try {
     result = await searchProperties(params);
-  } catch {
-    loadError = true;
+  } catch (err) {
+    // A 400 means a hand-edited or stale URL carried an invalid filter value, not an outage.
+    loadError =
+      err instanceof ApiError && err.status === 400
+        ? "Some of these filters aren't valid. Clear the filters and try again."
+        : "We couldn't load properties right now. Please try again shortly.";
   }
 
   const buildHref = (page: number) => {
@@ -49,7 +54,7 @@ export default async function PropertiesPage({ searchParams }: { searchParams: P
 
         <div>
           {loadError ? (
-            <ErrorState description="We couldn't load properties right now. Please try again shortly." />
+            <ErrorState description={loadError} />
           ) : !result || result.items.length === 0 ? (
             <EmptyState
               icon={<Search className="h-6 w-6" />}

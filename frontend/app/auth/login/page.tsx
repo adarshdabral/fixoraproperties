@@ -45,8 +45,10 @@ function LoginForm() {
   const onSubmit = async (data: LoginInput) => {
     try {
       const user = await login(data);
+      // Only follow same-site paths — "//evil.com" or "https://…" would turn login into an open redirect.
       const next = searchParams.get("next");
-      router.push(next || DASHBOARD_PATH[user.role] || "/");
+      const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+      router.push(safeNext || DASHBOARD_PATH[user.role] || "/");
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Something went wrong. Please try again.";
       toast({ variant: "error", title: "Couldn't log in", description: message });

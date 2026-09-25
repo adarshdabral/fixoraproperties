@@ -5,9 +5,7 @@ import { requirePermission } from "../../middleware/permission.js";
 import { validate } from "../../middleware/validate.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { sendSuccess } from "../../utils/apiResponse.js";
-import { AppError } from "../../utils/AppError.js";
 import { ROLES, type Role } from "../../shared/types/index.js";
-import { UserModel } from "./user.model.js";
 import { toPrivateUserDTO } from "./user.dto.js";
 import * as userService from "./user.service.js";
 
@@ -30,27 +28,16 @@ router.get(
   })
 );
 
+const setStatusSchema = z.object({ isActive: z.boolean() });
+
 router.patch(
   "/:id/status",
   requireAuth(),
   requirePermission("USERS_MANAGE"),
+  validate(setStatusSchema),
   asyncHandler(async (req, res) => {
     const { isActive } = req.body as { isActive: boolean };
-    const user = await UserModel.findById(req.params.id);
-    if (!user) throw AppError.notFound("User not found");
-
-    user.isActive = Boolean(isActive);
-    await user.save();
-
-    const { recordAudit } = await import("../audit/audit.service.js");
-    await recordAudit({
-      req,
-      action: "USER_DEACTIVATED",
-      resourceType: "User",
-      resourceId: user.id,
-      metadata: { isActive: user.isActive },
-    });
-
+    const user = await userService.setUserActive(req.user!.id, req.user!.role, req.params.id as string, isActive, req);
     sendSuccess(res, { user: toPrivateUserDTO(user) });
   })
 );

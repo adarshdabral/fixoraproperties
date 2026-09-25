@@ -23,7 +23,7 @@ export const propertyLocationSchema = z.object({
 });
 
 export const propertyPriceSchema = z.object({
-  amount: z.number().positive(),
+  amount: z.number({ invalid_type_error: "Enter a price" }).positive("Enter a price above zero"),
   currency: z.literal("INR").default("INR"),
   negotiable: z.boolean().default(false),
 });
@@ -31,7 +31,7 @@ export const propertyPriceSchema = z.object({
 export const propertySpecificationsSchema = z.object({
   bedrooms: z.number().int().min(0).max(50).optional(),
   bathrooms: z.number().int().min(0).max(50).optional(),
-  area: z.number().positive(),
+  area: z.number({ invalid_type_error: "Enter the area" }).positive("Enter an area above zero"),
   areaUnit: enumOf(AREA_UNITS as unknown as [string, ...string[]]).default("sqft"),
   parking: z.number().int().min(0).max(20).optional(),
   floor: z.number().int().min(0).max(200).optional(),
@@ -73,6 +73,9 @@ export type CreatePropertyInput = z.infer<typeof createPropertySchema>;
 export const updatePropertySchema = createPropertySchema.partial();
 export type UpdatePropertyInput = z.infer<typeof updatePropertySchema>;
 
+/** Query strings are text: z.coerce.boolean() would read "false" as true, so parse the literal instead. */
+const queryBoolean = z.enum(["true", "false"]).transform((v) => v === "true");
+
 export const propertySearchSchema = z.object({
   q: z.string().trim().max(200).optional(),
   city: z.string().trim().max(100).optional(),
@@ -86,8 +89,8 @@ export const propertySearchSchema = z.object({
   minArea: z.coerce.number().nonnegative().optional(),
   maxArea: z.coerce.number().nonnegative().optional(),
   constructionStatus: enumOf(CONSTRUCTION_STATUSES as unknown as [string, ...string[]]).optional(),
-  negotiable: z.coerce.boolean().optional(),
-  featured: z.coerce.boolean().optional(),
+  negotiable: queryBoolean.optional(),
+  featured: queryBoolean.optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(12),
   sort: z.enum(["newest", "price_asc", "price_desc", "area_asc", "area_desc"]).default("newest"),

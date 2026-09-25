@@ -25,6 +25,28 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     });
   }
 
+  // body-parser rejects malformed JSON / oversized bodies with an http-errors object (status 400/413) — a client mistake, not a crash.
+  if (err && typeof err === "object" && "type" in err && typeof (err as { status?: unknown }).status === "number") {
+    const { status, type } = err as { status: number; type: string };
+    if (status >= 400 && status < 500) {
+      return res.status(status).json({
+        success: false,
+        error:
+          type === "entity.too.large"
+            ? { code: "PAYLOAD_TOO_LARGE", message: "Request body is too large" }
+            : { code: "BAD_REQUEST", message: "Malformed request body" },
+      });
+    }
+  }
+
+  // A malformed id (e.g. /properties/not-an-id) can't match any document — treat it as not found, not a crash.
+  if (err instanceof mongoose.Error.CastError) {
+    return res.status(404).json({
+      success: false,
+      error: { code: "NOT_FOUND", message: "Resource not found" },
+    });
+  }
+
   if (err instanceof mongoose.Error.ValidationError) {
     return res.status(400).json({
       success: false,

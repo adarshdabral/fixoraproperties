@@ -115,11 +115,22 @@ export async function setFeatured(propertyId: string, featured: boolean): Promis
   return property;
 }
 
+/**
+ * Sellers can only move a listing that has been through review between
+ * published/sold/inactive. Pausing a draft or a listing awaiting review would
+ * strand it: neither edit nor submit accepts sold/inactive listings.
+ */
+const SELLER_LIFECYCLE_FROM = ["published", "sold", "inactive"];
+
 export async function setLifecycleStatus(
   propertyId: string,
-  status: "sold" | "inactive" | "published"
+  status: "sold" | "inactive" | "published",
+  isStaff = false
 ): Promise<PropertyDocument> {
   const property = await getPropertyById(propertyId);
+  if (!isStaff && !SELLER_LIFECYCLE_FROM.includes(property.status)) {
+    throw AppError.badRequest(`Cannot mark a property with status "${property.status}" as ${status}`);
+  }
   property.status = status;
   await property.save();
   return property;
@@ -131,12 +142,13 @@ export async function deleteProperty(propertyId: string): Promise<void> {
   await property.deleteOne();
 }
 
+/** `_id` breaks ties so equal prices/areas keep a stable order — otherwise skip/limit pagination can repeat or drop listings. */
 const SORT_MAP: Record<PropertySearchInput["sort"], Record<string, 1 | -1>> = {
-  newest: { createdAt: -1 },
-  price_asc: { "price.amount": 1 },
-  price_desc: { "price.amount": -1 },
-  area_asc: { "specifications.area": 1 },
-  area_desc: { "specifications.area": -1 },
+  newest: { createdAt: -1, _id: -1 },
+  price_asc: { "price.amount": 1, _id: 1 },
+  price_desc: { "price.amount": -1, _id: -1 },
+  area_asc: { "specifications.area": 1, _id: 1 },
+  area_desc: { "specifications.area": -1, _id: -1 },
 };
 
 /**

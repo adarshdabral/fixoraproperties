@@ -1,5 +1,5 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowRight,
   Building2,
@@ -7,7 +7,6 @@ import {
   Home,
   LandPlot,
   Mail,
-  MapPin,
   MessageCircle,
   Phone,
   Search as SearchIcon,
@@ -18,10 +17,19 @@ import { HeroSearch } from "@/features/home/hero-search";
 import { PropertyCard } from "@/components/property/property-card";
 import { EmptyState } from "@/components/ui/states";
 import { Button } from "@/components/ui/button";
-import { getFeaturedProperties, getPublicSettings, searchProperties } from "@/services/property.server";
-import { PROPERTY_CATEGORIES, type PublicPropertyDTO } from "@/lib/shared/types";
-import { categoryLabel, formatPriceINR } from "@/lib/utils";
+import { searchProperties } from "@/services/property.server";
+import { PROPERTY_CATEGORIES } from "@/lib/shared/types";
+import { categoryLabel } from "@/lib/utils";
 import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: { absolute: "Fixora Properties | Homes, plots and property in Dehradun" },
+  description:
+    "Buy or rent homes, plots, villas and commercial property in Dehradun. Every listing is checked by the Fixora team, and every enquiry is handled by us.",
+};
+
+/** Fixora operates in Dehradun only — every listing query on this page is scoped to it. */
+const CITY = "Dehradun";
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   residential: <Home className="h-5 w-5" />,
@@ -32,49 +40,55 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   villas: <Castle className="h-5 w-5" />,
 };
 
+const LOCALITIES = [
+  { name: "Rajpur Road", note: "Established homes towards the Mussoorie foothills" },
+  { name: "Sahastradhara Road", note: "Newer apartments and villas near the IT Park" },
+  { name: "Vasant Vihar", note: "Settled residential colony in west Dehradun" },
+  { name: "Prem Nagar", note: "Plots and independent houses off Chakrata Road" },
+  { name: "Clement Town", note: "Quieter, greener streets in south Dehradun" },
+  { name: "Doiwala", note: "Land and farmhouses on the way to Jolly Grant" },
+];
+
 const ENQUIRY_STEPS = [
-  { title: "Find a property", body: "Search by city, budget and category. Every listing has been checked by our team before it goes live." },
-  { title: "Send an enquiry", body: "Tap Request information on the listing. It takes under a minute and doesn't share your number with the seller." },
-  { title: "We call you back", body: "A Fixora team member reviews your enquiry, answers questions and arranges visits with the seller." },
-  { title: "Close at the listed price", body: "The price you saw already includes our fee, so the number doesn't change at the end." },
+  { title: "Find a property", body: "Search Dehradun by locality, budget and type. Every listing has been checked by our team before it goes live." },
+  { title: "Send an enquiry", body: "Tap Request information on the listing. It takes under a minute and your number isn't shared with the seller." },
+  { title: "We call you back", body: "A Fixora team member reviews your enquiry, answers your questions and speaks to the seller for you." },
+  { title: "Visit the property", body: "We arrange a site visit with the seller at a time that suits you, anywhere in Dehradun." },
 ];
 
 const FAQS = [
   {
-    q: "Why can't I contact the seller directly?",
-    a: "Every conversation goes through the Fixora team. It keeps sellers' personal numbers private, stops duplicate or spam enquiries, and means someone on our side is accountable for following up with you.",
+    q: "Do you only list property in Dehradun?",
+    a: "Yes. Fixora focuses on Dehradun and its surrounding areas, from Rajpur Road and Sahastradhara Road to Prem Nagar and Doiwala, so our team knows every locality we list in.",
   },
   {
-    q: "Is the listed price the final price?",
-    a: "The listed price already includes Fixora's platform fee on top of the seller's ask. There's no separate brokerage added later. Listings marked Negotiable are open to offers.",
+    q: "Why can't I contact the seller directly?",
+    a: "Every conversation goes through the Fixora team. It keeps sellers' personal numbers private, stops spam enquiries, and means someone on our side is responsible for following up with you.",
   },
   {
     q: "How are listings checked?",
-    a: "Every new or edited listing is reviewed by our team before it's published. Listings with missing or inconsistent details are sent back to the seller to fix.",
+    a: "Every new or edited listing is reviewed by our team before it's published. Listings with missing or inconsistent details are sent back to the owner to fix.",
   },
   {
-    q: "What does it cost to list a property?",
-    a: "Nothing up front. Sellers set their ask price and receive that full amount; the platform fee is added on top for buyers.",
+    q: "Can I visit a property before deciding?",
+    a: "Yes. Send an enquiry on the listing and our team will arrange a site visit with the seller.",
   },
 ];
 
+// Quoted so the text search matches the whole locality name, not any listing containing "road".
+const localityHref = (name: string) => `/properties?city=${CITY}&q=${encodeURIComponent(`"${name}"`)}`;
+
 export default async function HomePage() {
-  const [featured, negotiable, latest, settings] = await Promise.allSettled([
-    getFeaturedProperties(6),
-    searchProperties({ negotiable: "true", limit: "3" }),
-    searchProperties({ limit: "6" }),
-    getPublicSettings(),
+  const [featured, negotiable, latest] = await Promise.allSettled([
+    searchProperties({ city: CITY, featured: "true", limit: "6" }),
+    searchProperties({ city: CITY, negotiable: "true", limit: "3" }),
+    searchProperties({ city: CITY, limit: "6" }),
   ]);
 
   const featuredProperties = featured.status === "fulfilled" ? featured.value.items : [];
   const negotiableProperties = negotiable.status === "fulfilled" ? negotiable.value.items : [];
   const latestProperties = latest.status === "fulfilled" ? latest.value.items : [];
   const liveCount = latest.status === "fulfilled" ? latest.value.total : 0;
-  const feePercent = settings.status === "fulfilled" ? settings.value.platformFeePercent : null;
-
-  // The hero receipt prices a real listing — preferring one with a photo, featured first.
-  const candidates = [...featuredProperties, ...latestProperties];
-  const heroProperty = candidates.find((p) => p.media.length > 0) ?? candidates[0] ?? null;
   const showcase = featuredProperties.length > 0 ? featuredProperties : latestProperties;
 
   return (
@@ -84,11 +98,11 @@ export default async function HomePage() {
         <div className="container-content grid gap-12 py-14 lg:grid-cols-[1.25fr_1fr] lg:items-center lg:gap-16 lg:py-20">
           <div>
             <h1 className="max-w-xl font-display text-[2.6rem] leading-[1.05] tracking-tight text-ink text-balance sm:text-6xl">
-              Property listed by owners, checked by us.
+              Property in Dehradun, checked before you see it.
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-500">
-              Homes, plots and commercial spaces across India. Our team reviews every listing and
-              handles every enquiry. Every price shows exactly what goes to the seller and what goes to us.
+              Homes, plots, villas and shops across the Doon valley, listed by owners and reviewed by
+              our team. Every enquiry goes through us, so you always know who to call.
             </p>
             <div className="mt-9">
               <HeroSearch />
@@ -96,7 +110,7 @@ export default async function HomePage() {
             <p className="mt-4 text-sm text-ink-300">
               {liveCount > 0 ? (
                 <>
-                  <span className="font-medium text-ink">{liveCount.toLocaleString("en-IN")}</span> reviewed{" "}
+                  <span className="font-medium text-ink">{liveCount.toLocaleString("en-IN")}</span> Dehradun{" "}
                   {liveCount === 1 ? "listing" : "listings"} live now.{" "}
                 </>
               ) : null}
@@ -111,7 +125,22 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <PriceReceipt property={heroProperty} feePercent={feePercent} />
+          <nav aria-label="Browse by locality" className="rounded-[1.75rem] border border-line bg-paper p-6 sm:p-8">
+            <h2 className="font-display text-lg text-ink">Where in Dehradun?</h2>
+            <ul className="mt-4 divide-y divide-line">
+              {LOCALITIES.map((locality, i) => (
+                <li key={locality.name} className="motion-safe:animate-hero-in" style={{ animationDelay: `${100 + i * 70}ms` }}>
+                  <Link href={localityHref(locality.name)} className="group flex items-center justify-between gap-4 py-3.5">
+                    <span>
+                      <span className="block font-display text-xl text-ink group-hover:text-gold-600 sm:text-2xl">{locality.name}</span>
+                      <span className="mt-0.5 block text-sm text-ink-300">{locality.note}</span>
+                    </span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-ink-300 transition-transform group-hover:translate-x-0.5 group-hover:text-gold-600" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       </section>
 
@@ -121,7 +150,7 @@ export default async function HomePage() {
           {PROPERTY_CATEGORIES.map((category) => (
             <Link
               key={category}
-              href={`/properties?category=${category}`}
+              href={`/properties?city=${CITY}&category=${category}`}
               className="flex shrink-0 items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-medium text-ink-500 transition-colors hover:bg-white hover:text-ink focus-visible:bg-white"
             >
               <span className="text-gold-600">{CATEGORY_ICONS[category]}</span>
@@ -135,14 +164,11 @@ export default async function HomePage() {
       <section className="py-16 lg:py-20">
         <div className="container-content">
           <div className="flex items-end justify-between gap-4">
-            <div>
-              <h2 className="font-display text-3xl text-ink">
-                {featuredProperties.length > 0 ? "Featured properties" : "Latest properties"}
-              </h2>
-              <p className="mt-2 text-ink-300">Prices shown include the Fixora platform fee.</p>
-            </div>
+            <h2 className="font-display text-3xl text-ink">
+              {featuredProperties.length > 0 ? "Featured in Dehradun" : "Latest in Dehradun"}
+            </h2>
             <Link
-              href={featuredProperties.length > 0 ? "/properties?featured=true" : "/properties"}
+              href={featuredProperties.length > 0 ? `/properties?city=${CITY}&featured=true` : `/properties?city=${CITY}`}
               className="hidden shrink-0 items-center gap-1 text-sm font-medium text-ink hover:text-gold-600 sm:flex"
             >
               View all <ArrowRight className="h-4 w-4" />
@@ -153,8 +179,8 @@ export default async function HomePage() {
             {showcase.length === 0 ? (
               <EmptyState
                 icon={<SearchIcon className="h-6 w-6" />}
-                title="No properties are live yet"
-                description="New listings appear here once our team has reviewed them. Own a property? List it and be among the first."
+                title="No Dehradun properties are live yet"
+                description="New listings appear here once our team has reviewed them. Own property in Dehradun? List it and be among the first."
                 action={
                   <Button asChild variant="outline" size="sm">
                     <Link href="/sell">List your property</Link>
@@ -172,9 +198,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-
       {/* How an enquiry works */}
-      <section className="border-b border-line bg-white py-16 lg:py-20">
+      <section className="border-y border-line bg-white py-16 lg:py-20">
         <div className="container-content">
           <h2 className="max-w-lg font-display text-3xl text-ink">How buying through Fixora works</h2>
           <ol className="relative mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
@@ -196,25 +221,25 @@ export default async function HomePage() {
       <section className="py-16 lg:py-20">
         <div className="container-content">
           <div className="grid gap-px overflow-hidden rounded-xl2 border border-line bg-line md:grid-cols-2">
-          <Audience
-            title="Buying or renting"
-            points={[
-              "Every listing reviewed before it's published",
-              "Your number is only seen by the Fixora team",
-              "Our team follows up on every enquiry you send",
-            ]}
-            cta={{ href: "/properties", label: "Browse properties" }}
-          />
-          <Audience
-            title="Selling or leasing out"
-            points={[
-              "Free to list — you receive your full ask price",
-              "Buyers never get your personal phone number",
-              "Our team reviews enquiries before passing them on",
-            ]}
-            cta={{ href: "/auth/register?role=SELLER", label: "List your property" }}
-            gold
-          />
+            <Audience
+              title="Buying or renting in Dehradun"
+              points={[
+                "Every listing reviewed before it's published",
+                "Your number is only seen by the Fixora team",
+                "Site visits arranged for you across the city",
+              ]}
+              cta={{ href: `/properties?city=${CITY}`, label: "Browse Dehradun properties" }}
+            />
+            <Audience
+              title="Selling or leasing out in Dehradun"
+              points={[
+                "List your house, flat, plot or shop in a few minutes",
+                "Buyers never get your personal phone number",
+                "Our team reviews enquiries before passing them on",
+              ]}
+              cta={{ href: "/auth/register?role=SELLER", label: "List your property" }}
+              gold
+            />
           </div>
         </div>
       </section>
@@ -224,8 +249,11 @@ export default async function HomePage() {
         <section className="border-t border-line bg-white py-16 lg:py-20">
           <div className="container-content">
             <div className="flex items-end justify-between">
-              <h2 className="font-display text-3xl text-ink">Open to offers</h2>
-              <Link href="/properties?negotiable=true" className="hidden items-center gap-1 text-sm font-medium text-ink hover:text-gold-600 sm:flex">
+              <h2 className="font-display text-3xl text-ink">Open to offers in Dehradun</h2>
+              <Link
+                href={`/properties?city=${CITY}&negotiable=true`}
+                className="hidden items-center gap-1 text-sm font-medium text-ink hover:text-gold-600 sm:flex"
+              >
                 View all <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -262,9 +290,9 @@ export default async function HomePage() {
       <section className="border-t border-line bg-white py-16">
         <div className="container-content grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <h2 className="font-display text-3xl text-ink">Talk to the Fixora team</h2>
+            <h2 className="font-display text-3xl text-ink">Talk to our Dehradun team</h2>
             <p className="mt-2 max-w-lg text-ink-500">
-              Questions about a listing, a visit, or selling your property? We&apos;re a call or a message away.
+              Questions about a listing, a site visit, or selling your property in Dehradun? We&apos;re a call or a message away.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -291,87 +319,6 @@ export default async function HomePage() {
         </div>
       </section>
     </>
-  );
-}
-
-function PriceReceipt({ property, feePercent }: { property: PublicPropertyDTO | null; feePercent: number | null }) {
-  const listed = property?.price.amount ?? null;
-  // Listed prices are the ask marked up by the fee (rounded to the rupee), so invert that to show the split.
-  const ask = listed !== null && feePercent !== null ? Math.round(listed / (1 + feePercent / 100)) : null;
-  const fee = listed !== null && ask !== null ? listed - ask : null;
-  const cover = property?.media[0];
-  const feeLabel = feePercent !== null ? `Fixora fee (${feePercent}%)` : "Fixora fee";
-
-  // Without the fee percentage the split can't be shown honestly, so the receipt shows just the total.
-  const rows: { label: string; value: string }[] =
-    feePercent === null
-      ? []
-      : [
-          { label: "Seller's ask", value: ask !== null ? formatPriceINR(ask) : "Set by the owner" },
-          { label: feeLabel, value: fee !== null ? formatPriceINR(fee) : `${feePercent}% of the ask` },
-        ];
-
-  return (
-    <div className="overflow-hidden rounded-[1.75rem] border border-line bg-paper shadow-card">
-      {property && cover && (
-        <Link href={`/properties/${property.slug}`} className="group relative block aspect-[16/10] overflow-hidden bg-ink/5">
-          <Image
-            src={cover.url}
-            alt={cover.alt || property.title}
-            fill
-            priority
-            sizes="(min-width: 1024px) 40vw, 100vw"
-            className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-          />
-        </Link>
-      )}
-
-      <div className="p-6 sm:p-8">
-        {property ? (
-          <Link href={`/properties/${property.slug}`} className="group block">
-            <p className="line-clamp-1 font-display text-lg text-ink group-hover:text-gold-600">{property.title}</p>
-            <p className="mt-1 flex items-center gap-1 text-sm text-ink-300">
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
-              <span className="line-clamp-1">
-                {property.location.city}, {property.location.state}
-              </span>
-            </p>
-          </Link>
-        ) : (
-          <p className="font-display text-lg text-ink">How every price on Fixora is made</p>
-        )}
-
-        {rows.length > 0 && (
-        <dl className="mt-6 space-y-3">
-          {rows.map((row, i) => (
-            <div
-              key={row.label}
-              className="flex items-baseline justify-between gap-4 motion-safe:animate-hero-in"
-              style={{ animationDelay: `${150 + i * 180}ms` }}
-            >
-              <dt className="text-sm text-ink-500">{row.label}</dt>
-              <dd className="font-medium tabular-nums text-ink">{row.value}</dd>
-            </div>
-          ))}
-        </dl>
-        )}
-
-        <div
-          className="mt-5 flex items-end justify-between gap-4 border-t border-dashed border-ink/25 pt-5 motion-safe:animate-hero-in"
-          style={{ animationDelay: "560ms" }}
-        >
-          <p className="pb-1.5 text-sm font-medium text-ink">You pay</p>
-          <p className="font-display text-5xl leading-none tracking-tight tabular-nums text-ink sm:text-6xl">
-            {listed !== null ? formatPriceINR(listed) : "Ask + fee"}
-          </p>
-        </div>
-        <p className="mt-4 text-xs text-ink-300">
-          {rows.length > 0
-            ? "Nothing else is added at closing. The seller receives their full ask."
-            : "Includes Fixora's platform fee. Nothing else is added at closing."}
-        </p>
-      </div>
-    </div>
   );
 }
 

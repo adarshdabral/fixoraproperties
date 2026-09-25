@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { addToShortlist, removeFromShortlist } from "@/services/buyer.service";
@@ -21,6 +22,7 @@ export function ShortlistButton({
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [shortlisted, setShortlisted] = useState(initialShortlisted);
   const [pending, setPending] = useState(false);
 
@@ -47,7 +49,13 @@ export function ShortlistButton({
         setShortlisted(true);
         toast({ variant: "success", title: "Added to shortlist" });
       }
+      queryClient.invalidateQueries({ queryKey: ["shortlist"] });
     } catch (err) {
+      // Cards outside the shortlist page don't know what's already saved; a 409 means it already is.
+      if (err instanceof ApiError && err.status === 409) {
+        setShortlisted(true);
+        return;
+      }
       const message = err instanceof ApiError ? err.message : "Something went wrong";
       toast({ variant: "error", title: "Couldn't update shortlist", description: message });
     } finally {

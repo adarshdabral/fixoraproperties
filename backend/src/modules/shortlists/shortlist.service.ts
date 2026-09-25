@@ -24,7 +24,8 @@ export async function removeShortlist(buyerId: string, propertyId: string) {
 export async function listShortlistedProperties(buyerId: string) {
   const entries = await ShortlistModel.find({ buyerId }).sort({ createdAt: -1 });
   const propertyIds = entries.map((e) => e.propertyId);
-  const properties = await PropertyModel.find({ _id: { $in: propertyIds } });
+  // Listings that were unpublished, sold or sent back for edits since being shortlisted drop out of view.
+  const properties = await PropertyModel.find({ _id: { $in: propertyIds }, status: "published" });
 
   const byId = new Map(properties.map((p) => [p.id, p]));
   return entries.map((e) => byId.get(e.propertyId.toString())).filter((p): p is NonNullable<typeof p> => Boolean(p));

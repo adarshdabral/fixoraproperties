@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -20,6 +20,12 @@ export function FilterPanel() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const [draft, setDraft] = useState(() => Object.fromEntries(searchParams.entries()));
+
+  // Keep the form in step when the URL changes underneath it (e.g. a category or locality link).
+  const paramsKey = searchParams.toString();
+  useEffect(() => {
+    setDraft(Object.fromEntries(new URLSearchParams(paramsKey).entries()));
+  }, [paramsKey]);
 
   const setField = (key: string, value: string) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -43,6 +49,11 @@ export function FilterPanel() {
 
   const fields = (
     <div className="space-y-5">
+      <div>
+        <Label htmlFor="q">Locality or keyword</Label>
+        <Input id="q" className="mt-1.5" value={draft.q ?? ""} onChange={(e) => setField("q", e.target.value)} placeholder="e.g. Rajpur Road" />
+      </div>
+
       <div>
         <Label htmlFor="city">City</Label>
         <Input id="city" className="mt-1.5" value={draft.city ?? ""} onChange={(e) => setField("city", e.target.value)} placeholder="e.g. Dehradun" />

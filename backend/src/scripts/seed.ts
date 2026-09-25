@@ -65,7 +65,7 @@ async function seedDemoProperty(sellerId: string) {
     propertyType: "apartment",
     category: "apartments",
     listingType: "sale",
-    location: { address: "Sector 22", city: "Dehradun", state: "Dehradun", pincode: "160022" },
+    location: { address: "Sector 22", city: "Dehradun", state: "Uttarakhand", pincode: "248001" },
     price: { amount: 8000000, currency: "INR", negotiable: true },
     specifications: { bedrooms: 3, bathrooms: 2, area: 1450, areaUnit: "sqft", parking: 1 },
     amenities: ["parking", "lift", "power backup"],

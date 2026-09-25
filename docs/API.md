@@ -49,10 +49,6 @@ the new role or the target's current role — requires `ADMINS_MANAGE`
 can't be bypassed. Self-role-change is blocked outright (400) to avoid
 accidental lockout. Records a `ROLE_CHANGED` audit entry with `{ from, to }`.
 
-### `GET /settings/public` (public)
-`{ platformFeePercent }` — used by the home page to show how a listed price
-splits into seller's ask + fee.
-
 ### `GET /settings/platform-fee` / `PATCH /settings/platform-fee` (permission: `SYSTEM_SETTINGS_MANAGE` — SUPER_ADMIN only)
 Body for `PATCH`: `{ platformFeePercent }` (0–100). This is the percentage
 added to a seller's ask price wherever a buyer sees it (see

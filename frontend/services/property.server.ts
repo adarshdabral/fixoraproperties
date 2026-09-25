@@ -11,13 +11,9 @@ export function searchProperties(query: Record<string, string | string[] | undef
 }
 
 export function getPropertyBySlug(slug: string) {
-  return serverApi.get<{ property: PublicPropertyDTO }>(`/properties/slug/${slug}`);
+  return serverApi.get<{ property: PublicPropertyDTO }>(`/properties/slug/${encodeURIComponent(slug)}`);
 }
 
 export function getFeaturedProperties(limit = 6) {
   return serverApi.get<PaginatedResult<PublicPropertyDTO>>("/properties", { featured: true, limit });
-}
-
-export function getPublicSettings() {
-  return serverApi.get<{ platformFeePercent: number }>("/settings/public");
 }

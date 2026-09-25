@@ -18,7 +18,7 @@ import { ApiError } from "@/lib/api";
 export function PlatformFeeForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data, isLoading, isError } = useQuery({ queryKey: ["platform-fee"], queryFn: getPlatformFee });
+  const { data, isLoading, isError, error } = useQuery({ queryKey: ["platform-fee"], queryFn: getPlatformFee });
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -51,6 +51,9 @@ export function PlatformFeeForm() {
   };
 
   if (isLoading) return <LoadingState label="Loading platform fee…" />;
+  if (error instanceof ApiError && error.status === 403) {
+    return <ErrorState description="Only a Super Admin can view or change the platform fee." />;
+  }
   if (isError || !data) return <ErrorState description="Couldn't load the platform fee." />;
 
   const preview = Number(value);

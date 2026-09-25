@@ -1,4 +1,5 @@
 import { LeadModel, type LeadDocument } from "./lead.model.js";
+import { InquiryModel } from "../inquiries/inquiry.model.js";
 import { AppError } from "../../utils/AppError.js";
 import { recordAudit } from "../audit/audit.service.js";
 import type { LeadSource } from "../../shared/types/index.js";
@@ -43,6 +44,8 @@ export async function updateLeadStatus(leadId: string, status: string): Promise<
 
   lead.status = status as LeadDocument["status"];
   await lead.save();
+  // The buyer's dashboard reads status from their Inquiry, so keep it in step with the Lead.
+  await InquiryModel.updateMany({ leadId: lead._id }, { status: lead.status });
   return lead;
 }
 

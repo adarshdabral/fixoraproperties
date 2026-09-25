@@ -72,7 +72,10 @@ responses — not by hiding them in the UI.
   database boundary.
 - `helmet()` sets secure headers; `cors()` is locked to `WEB_APP_URL` with
   credentials; body size is capped at 1mb; `express-rate-limit` protects
-  both general API traffic and auth/AI endpoints specifically.
+  writes and auth/AI endpoints specifically. GET requests are exempt from
+  the general limit because server-rendered pages reach the API from shared
+  Vercel IPs; `/auth/refresh` has its own looser limit so page-load session
+  refreshes can't use up the login budget.
 
 ## Error handling
 

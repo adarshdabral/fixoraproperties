@@ -4,6 +4,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { sendCreated, sendSuccess } from "../../utils/apiResponse.js";
 import * as shortlistService from "./shortlist.service.js";
 import { toPublicPropertyDTO } from "../properties/property.dto.js";
+import { getPlatformFeePercent } from "../settings/settings.service.js";
 
 const router = Router();
 
@@ -12,8 +13,11 @@ router.use(requireAuth(), requireRole("BUYER"));
 router.get(
   "/",
   asyncHandler(async (req, res) => {
-    const properties = await shortlistService.listShortlistedProperties(req.user!.id);
-    sendSuccess(res, { properties: properties.map(toPublicPropertyDTO) });
+    const [properties, feePercent] = await Promise.all([
+      shortlistService.listShortlistedProperties(req.user!.id),
+      getPlatformFeePercent(),
+    ]);
+    sendSuccess(res, { properties: properties.map((p) => toPublicPropertyDTO(p, feePercent)) });
   })
 );
 

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { z } from "zod";
 import { requireAuth, optionalAuth } from "../../middleware/auth.js";
 import { requirePermission, requireOwnership } from "../../middleware/permission.js";
 import { requireRole } from "../../middleware/auth.js";
@@ -8,6 +9,10 @@ import { PropertyModel } from "./property.model.js";
 import * as propertyController from "./property.controller.js";
 
 const router = Router();
+
+const rejectSchema = z.object({ reason: z.string().trim().min(1, "A rejection reason is required").max(1000) });
+const featureSchema = z.object({ featured: z.boolean() });
+const lifecycleStatusSchema = z.object({ status: z.enum(["sold", "inactive", "published"]) });
 
 const getSellerIdOwner = async (req: import("express").Request) => {
   const property = await PropertyModel.findById(req.params.id).select("sellerId");
@@ -51,13 +56,14 @@ router.post(
 
 // --- Admin/super-admin moderation actions ---
 router.patch("/:id/approve", requireAuth(), requirePermission("PROPERTIES_APPROVE"), propertyController.approve);
-router.patch("/:id/reject", requireAuth(), requirePermission("PROPERTIES_APPROVE"), propertyController.reject);
-router.patch("/:id/feature", requireAuth(), requirePermission("PROPERTIES_APPROVE"), propertyController.feature);
+router.patch("/:id/reject", requireAuth(), requirePermission("PROPERTIES_APPROVE"), validate(rejectSchema), propertyController.reject);
+router.patch("/:id/feature", requireAuth(), requirePermission("PROPERTIES_APPROVE"), validate(featureSchema), propertyController.feature);
 router.patch(
   "/:id/status",
   requireAuth(),
   requirePermission("PROPERTIES_EDIT"),
   requireOwnership(getSellerIdOwner),
+  validate(lifecycleStatusSchema),
   propertyController.setStatus
 );
 router.delete("/:id", requireAuth(), requirePermission("PROPERTIES_DELETE"), propertyController.remove);

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listPropertiesForModeration, approveProperty, rejectProperty } from "@/services/admin.service";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { LoadingState, ErrorState, EmptyState } from "@/components/ui/states";
 import { useToast } from "@/components/ui/toast";
-import { formatPriceINR } from "@/lib/utils";
+import { formatPriceINR, formatArea, categoryLabel, titleCase } from "@/lib/utils";
 import { ApiError } from "@/lib/api";
 import { ClipboardCheck } from "lucide-react";
 
@@ -62,11 +62,15 @@ export function ModerationQueue() {
             <div>
               <p className="font-display text-lg text-ink">{property.title}</p>
               <p className="text-sm text-ink-300">
-                {property.location.city}, {property.location.state} · {formatPriceINR(property.price.amount)}
+                {property.location.address}, {property.location.city}, {property.location.state} {property.location.pincode}
               </p>
-              <Badge variant="neutral" className="mt-2">
-                {property.status}
-              </Badge>
+              <p className="mt-1 text-sm text-ink-500">
+                {formatPriceINR(property.price.amount)} ask · {categoryLabel(property.category)} for {property.listingType} ·{" "}
+                {formatArea(property.specifications.area, property.specifications.areaUnit)}
+                {property.specifications.bedrooms !== undefined && ` · ${property.specifications.bedrooms} bed`}
+                {" · "}
+                {titleCase(property.constructionStatus)}
+              </p>
             </div>
             <div className="flex gap-2">
               <Button size="sm" onClick={() => handleApprove(property.id)}>
@@ -77,6 +81,27 @@ export function ModerationQueue() {
               </Button>
             </div>
           </div>
+
+          <p className="mt-3 line-clamp-3 whitespace-pre-line text-sm text-ink-500">{property.description}</p>
+
+          {property.media.length > 0 ? (
+            <div className="mt-3 flex gap-2 overflow-x-auto">
+              {property.media.map((m, i) => (
+                <a
+                  key={m.publicId}
+                  href={m.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative h-20 w-28 shrink-0 overflow-hidden rounded-md border border-line bg-ink/5"
+                  aria-label={`Open photo ${i + 1} full size`}
+                >
+                  <Image src={m.url} alt="" fill sizes="112px" className="object-cover" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-ink-300">No photos added.</p>
+          )}
 
           {rejectingId === property.id && (
             <div className="mt-4 flex gap-2 border-t border-line pt-4">

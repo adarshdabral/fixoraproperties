@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { BedDouble, Bath, Ruler, Car, Building, MapPin, CalendarClock, Phone, MessageCircle } from "lucide-react";
 import { PropertyGallery } from "@/components/property/property-gallery";
@@ -14,7 +15,8 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-async function loadProperty(slug: string) {
+/** Memoized per request so generateMetadata and the page share one API call. */
+const loadProperty = cache(async (slug: string) => {
   try {
     const { property } = await getPropertyBySlug(slug);
     return property;
@@ -22,7 +24,7 @@ async function loadProperty(slug: string) {
     if (err instanceof ApiError && err.status === 404) return null;
     throw err;
   }
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -63,8 +65,9 @@ export default async function PropertyDetailPage({ params }: Props) {
 
   return (
     <div className="container-content py-10">
+      {/* Title/description are seller-written: escape "<" so a "</script>" in them can't close this tag and inject markup. */}
       {/* eslint-disable-next-line react/no-danger */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
       <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
         <div>

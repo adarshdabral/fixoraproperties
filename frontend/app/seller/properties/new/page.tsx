@@ -24,6 +24,9 @@ import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api";
 import { categoryLabel, titleCase } from "@/lib/utils";
 
+/** Blank optional number inputs must become undefined — `valueAsNumber` would send NaN, which the schema rejects. */
+const optionalNumber = { setValueAs: (v: unknown) => (v === "" || v === null || v === undefined ? undefined : Number(v)) };
+
 export default function NewPropertyPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -223,15 +226,18 @@ export default function NewPropertyPage() {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="bedrooms">Bedrooms</Label>
-              <Input id="bedrooms" type="number" className="mt-1.5" {...register("specifications.bedrooms", { valueAsNumber: true })} />
+              <Input id="bedrooms" type="number" min={0} className="mt-1.5" {...register("specifications.bedrooms", optionalNumber)} />
+              <FieldError message={errors.specifications?.bedrooms?.message} />
             </div>
             <div>
               <Label htmlFor="bathrooms">Bathrooms</Label>
-              <Input id="bathrooms" type="number" className="mt-1.5" {...register("specifications.bathrooms", { valueAsNumber: true })} />
+              <Input id="bathrooms" type="number" min={0} className="mt-1.5" {...register("specifications.bathrooms", optionalNumber)} />
+              <FieldError message={errors.specifications?.bathrooms?.message} />
             </div>
             <div>
               <Label htmlFor="parking">Parking</Label>
-              <Input id="parking" type="number" className="mt-1.5" {...register("specifications.parking", { valueAsNumber: true })} />
+              <Input id="parking" type="number" min={0} className="mt-1.5" {...register("specifications.parking", optionalNumber)} />
+              <FieldError message={errors.specifications?.parking?.message} />
             </div>
           </div>
 
